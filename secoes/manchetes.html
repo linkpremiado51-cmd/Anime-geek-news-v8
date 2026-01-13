@@ -1,0 +1,412 @@
+<div class="destaque-wrapper">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <meta property="og:title" content="AniGeekNews">
+  <meta property="og:description" content="Análises técnicas e culturais sobre animes, jogos e mangás.">
+  <meta property="og:image" content="https://anigeeknews.com/default-og.jpg">
+  <meta property="og:url" content="https://anigeeknews.com">
+
+  <style>
+    /* SEU CSS ORIGINAL — PRESERVADO 100% */
+    .destaque-wrapper {
+      width: 100vw; position: relative; left: 50%; right: 50%;
+      margin-left: -50vw; margin-right: -50vw;
+      font-family: 'Inter', sans-serif; background: #ffffff; color: #121212;
+      overflow-x: hidden; box-sizing: border-box;
+    }
+    .destaque-wrapper * { box-sizing: border-box; }
+    .destaque-secao { width: 100%; margin-bottom: 80px; border-bottom: 1px solid #eaeaea; padding-bottom: 20px; }
+    .destaque-padding { padding: 0 25px; max-width: 1100px; margin: 0 auto; }
+    .destaque-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 15px; }
+    .destaque-titulo { font-size: clamp(26px, 5vw, 44px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; margin: 0; }
+    .menu-opcoes-container { position: relative; display: inline-block; }
+    .btn-tres-pontos { background: none; border: none; font-size: 24px; cursor: pointer; color: #888; padding: 5px 10px; line-height: 1; }
+    .dropdown-conteudo {
+      display: none; position: absolute; background-color: #ffffff; min-width: 220px;
+      box-shadow: 0px 8px 25px rgba(0,0,0,0.15); z-index: 20; border: 1px solid #eaeaea;
+      border-radius: 8px; overflow: hidden; top: 100%; margin-top: 5px;
+    }
+    .header-dropdown { right: 0; }
+    .acoes-dropdown { left: 0; top: auto; bottom: 100%; margin-bottom: 10px; }
+    .menu-opcoes-container:hover .dropdown-conteudo,
+    .menu-opcoes-container:focus-within .dropdown-conteudo { display: block; animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .dropdown-conteudo a { color: #121212; padding: 12px 20px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; border-bottom: 1px solid #f9f9f9; }
+    .dropdown-conteudo a:hover { background-color: #f8f9fa; color: var(--tema-cor); padding-left: 24px; }
+    .destaque-categoria { color: var(--tema-cor); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+    .destaque-resumo { font-size: clamp(16px, 2vw, 19px); line-height: 1.6; color: #444; margin-bottom: 10px; max-width: 850px; }
+    .btn-ver-artigo { display: inline-flex; align-items: center; gap: 8px; color: var(--tema-cor); text-decoration: none; font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 25px; cursor: pointer; }
+    .destaque-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px; background: #f8f9fa; padding: 15px;
+      border-left: 4px solid var(--tema-cor); margin-bottom: 25px;
+    }
+    .info-item { display: flex; flex-direction: column; gap: 4px; }
+    .info-label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #888; }
+    .info-valor { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; position: relative; }
+    .destaque-media iframe { width: 100%; aspect-ratio: 16 / 9; border: none; display: block; }
+    .destaque-acoes { display: flex; padding: 15px 25px 20px; gap: 15px; max-width: 1100px; margin: 0 auto; }
+    .btn-acao { border: 1px solid #d1d1d1; background: transparent; padding: 12px 20px; font-weight: 700; font-size: 12px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .btn-acao:hover { background: #121212; color: #fff; border-color: #121212; }
+    .carrossel-temas { width: 100%; margin: 0 auto 40px; }
+    .carrossel-header { padding: 0 25px; max-width: 1100px; margin: 0 auto 12px; display: flex; align-items: center; gap: 10px; }
+    .temas-label { font-size: 11px; font-weight: 900; text-transform: uppercase; color: #888; }
+    .temas-count { background: #f0f0f0; color: #121212; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+    .temas-scroll-wrapper { width: 100%; overflow-x: auto; scrollbar-width: none; padding: 0 25px; }
+    .temas-container { display: flex; gap: 12px; padding-bottom: 5px; width: max-content; }
+    .tema-card { flex: 0 0 160px; cursor: pointer; transition: transform 0.2s; }
+    .tema-card:hover { transform: scale(1.03); }
+    .tema-thumb { width: 100%; aspect-ratio: 16/9; border-radius: 6px; object-fit: cover; margin-bottom: 6px; }
+    .tema-titulo { font-size: 11px; font-weight: 700; line-height: 1.3; color: #121212; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    #notificacao-video {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(150%);
+      background: #121212; color: #fff; padding: 12px 20px; z-index: 9999; display: flex; align-items: center; gap: 15px; border-radius: 4px;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 4px solid var(--notif-cor, #fff); min-width: 280px;
+    }
+    #notificacao-video.visivel { transform: translateX(-50%) translateY(0); }
+    .btn-confirmar-video { background: #fff; color: #000; border: none; padding: 6px 12px; font-weight: 800; font-size: 10px; text-transform: uppercase; cursor: pointer; }
+    @media (max-width: 768px) {
+      .destaque-info-grid { grid-template-columns: 1fr 1fr; }
+      .destaque-acoes { flex-wrap: wrap; }
+      .menu-opcoes-container { flex: 1; }
+      .btn-acao { width: 100%; justify-content: center; }
+    }
+    /* Notificação de Novo Conteúdo */
+    #notificacao-novo-artigo {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #2563eb;
+      color: #fff;
+      padding: 15px 25px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(150%);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      font-family: 'Inter', sans-serif;
+    }
+    #notificacao-novo-artigo.mostrar {
+      transform: translateX(0);
+    }
+
+    #toast-copiado {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(150%);
+      background: #4caf50;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    #toast-copiado.mostrar {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    #modal-noticia {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9);
+      z-index: 99999;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    #modal-conteudo {
+      background: white;
+      color: #121212;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 8px;
+      position: relative;
+    }
+    #modal-fechar {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #eee;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #modal-video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      margin: 20px 0;
+      border: none;
+    }
+  </style>
+
+  <div id="notificacao-novo-artigo">
+    <i class="fa-solid fa-bell-concierge"></i>
+    <div>
+      <div style="font-size: 11px; font-weight: 800; opacity: 0.8; text-transform: uppercase;">Novo no site!</div>
+      <div id="novo-artigo-titulo" style="font-size: 14px; font-weight: 700;">Carregando título...</div>
+    </div>
+  </div>
+
+  <div id="container-principal"></div>
+
+  <div id="notificacao-video">
+    <div style="flex: 1;">
+      <div style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Deseja assistir?</div>
+      <div id="notif-titulo" style="font-size: 13px; font-weight: 700;">Título</div>
+    </div>
+    <button class="btn-confirmar-video" id="btn-confirmar">Confirmar</button>
+    <i class="fa-solid fa-xmark" style="cursor:pointer; padding: 5px;" onclick="window.fecharNotif()"></i>
+  </div>
+
+  <div id="toast-copiado">Link copiado!</div>
+
+  <div id="modal-noticia">
+    <div id="modal-conteudo">
+      <button id="modal-fechar" onclick="window.fecharModal()">×</button>
+      <div id="modal-titulo" class="destaque-titulo" style="margin-top: 0;"></div>
+      <div id="modal-categoria" class="destaque-categoria"></div>
+      <p id="modal-resumo" class="destaque-resumo"></p>
+      <a id="modal-link" class="btn-ver-artigo"><i class="fa-solid fa-book-open"></i> Ver artigo completo</a>
+      <div id="modal-ficha" class="destaque-info-grid"></div>
+      <iframe id="modal-video" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBC_ad4X9OwCHKvcG_pNQkKEl76Zw2tu6o",
+      authDomain: "anigeeknews.firebaseapp.com",
+      projectId: "anigeeknews",
+      storageBucket: "anigeeknews.firebasestorage.app",
+      messagingSenderId: "769322939926",
+      appId: "1:769322939926:web:6eb91a96a3f74670882737",
+      measurementId: "G-G5T8CCRGZT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function limparEspacos(url) {
+      return url ? url.trim() : url;
+    }
+
+    const meuFeedNoticias = [
+      {
+        id: "onepiece",
+        cor: "#e63946",
+        categoria: "Análise Técnica",
+        titulo: "Por que Egghead é o melhor arco de One Piece em décadas",
+        resumo: "Uma análise profunda sobre a mudança estética da Toei Animation e o impacto da direção de arte de Sota Shigeshita.",
+        linkArtigo: "#",
+        ficha: [{ label: "Estúdio", valor: "Toei Animation" }, { label: "Direção", valor: "Sota Shigeshita" }, { label: "Analista", valor: "Gustavo Lima" }],
+        videoPrincipal: "https://www.youtube.com/embed/uJMdqWHlnD4",
+        relacionados: [
+          { idVid: "uJMdqWHlnD4", titulo: "EGGHEAD SE TORNOU O MELHOR ARCO!", thumb: "https://img.youtube.com/vi/uJMdqWHlnD4/mqdefault.jpg" },
+          { idVid: "rHI0D2BF2Vs", titulo: "EGGHEAD o MELHOR ARCO de ONE PIECE?!", thumb: "https://img.youtube.com/vi/rHI0D2BF2Vs/mqdefault.jpg" },
+          { idVid: "ZVFltoxPPDE", titulo: "5 PONTOS POSITIVOS DE EGGHEAD", thumb: "https://img.youtube.com/vi/ZVFltoxPPDE/mqdefault.jpg" }
+        ]
+      },
+      {
+        id: "sololeveling",
+        cor: "#4361ee",
+        categoria: "Análise de Produção",
+        titulo: "Solo Leveling: A anatomia de um sucesso global",
+        resumo: "Como a A-1 Pictures transformou o Manhwa em um fenômeno visual, mantendo a fidelidade à obra original.",
+        linkArtigo: "#",
+        ficha: [{ label: "Estúdio", valor: "A-1 Pictures" }, { label: "Original", valor: "Chugong (Webtoon)" }, { label: "Analista", valor: "Mariana Silva" }],
+        videoPrincipal: "https://www.youtube.com/embed/XqD0oCHLIF8",
+        relacionados: [
+          { idVid: "XqD0oCHLIF8", titulo: "Solo Leveling Opening | LEveL", thumb: "https://img.youtube.com/vi/XqD0oCHLIF8/mqdefault.jpg" },
+          { idVid: "ZGXOWPZ64DA", titulo: "DARK ARIA <LV2> Music Video", thumb: "https://img.youtube.com/vi/ZGXOWPZ64DA/mqdefault.jpg" },
+          { idVid: "XL4vw8hKTrI", titulo: "Every fight in Solo Leveling Analysis", thumb: "https://img.youtube.com/vi/XL4vw8hKTrI/mqdefault.jpg" }
+        ]
+      }
+    ];
+
+    window.shareNews = (titulo, url) => {
+      if (navigator.share) {
+        navigator.share({ title: titulo, url }).catch(console.error);
+      } else {
+        alert("Seu navegador não suporta Web Share. Use 'Copiar Link'.");
+      }
+    };
+
+    window.copiarLink = async (url) => {
+      try {
+        await navigator.clipboard.writeText(url);
+        const toast = document.getElementById('toast-copiado');
+        toast.classList.add('mostrar');
+        setTimeout(() => toast.classList.remove('mostrar'), 2000);
+      } catch (err) {
+        console.error("Falha ao copiar:", err);
+      }
+    };
+
+    window.fecharModal = () => {
+      document.getElementById('modal-noticia').style.display = 'none';
+    };
+
+    window.pedirTroca = (idPlayer, idVideo, titulo, cor) => {
+      playerAlvo = idPlayer;
+      urlAlvo = `https://www.youtube.com/embed/$${idVideo}?autoplay=1`;
+      const notif = document.getElementById('notificacao-video');
+      document.getElementById('notif-titulo').innerText = titulo;
+      notif.style.setProperty('--notif-cor', cor);
+      notif.classList.add('visivel');
+    };
+
+    window.fecharNotif = () => {
+      document.getElementById('notificacao-video').classList.remove('visivel');
+    };
+
+    let playerAlvo = '';
+    let urlAlvo = '';
+
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    if(btnConfirmar) {
+        btnConfirmar.onclick = () => {
+          const player = document.getElementById(playerAlvo);
+          if (player) player.src = urlAlvo;
+          window.fecharNotif();
+        };
+    }
+
+    function renderizarNoticias(listaCompleta) {
+      const container = document.getElementById('container-principal');
+      if (!container) return;
+      const baseUrl = window.location.origin + window.location.pathname;
+
+      container.innerHTML = listaCompleta.map(news => {
+        const thumbLimpa = news.relacionados && news.relacionados.length > 0 ? limparEspacos(news.relacionados[0].thumb) : 'https://anigeeknews.com/default-og.jpg';
+        const shareUrl = `${baseUrl}?id=${encodeURIComponent(news.id)}`;
+
+        return `
+        <article class="destaque-secao" id="artigo-${news.id}" style="--tema-cor: ${news.cor}">
+          <div class="destaque-padding">
+            <div class="destaque-categoria"><i class="fa-solid fa-video"></i> ${news.categoria}</div>
+            <div class="destaque-header">
+              <h2 class="destaque-titulo">${news.titulo}</h2>
+              <div class="menu-opcoes-container" tabindex="0">
+                <button class="btn-tres-pontos"><i class="fa-solid fa-ellipsis"></i></button>
+                <div class="dropdown-conteudo header-dropdown">
+                  <a href="#"><i class="fa-regular fa-bookmark"></i> Salvar Artigo</a>
+                  <a href="#"><i class="fa-solid fa-headphones"></i> Fazer Leitura</a>
+                  <a href="#" onclick="event.preventDefault(); window.copiarLink('${shareUrl}');"><i class="fa-regular fa-copy"></i> Copiar Link</a>
+                  <a href="#"><i class="fa-solid fa-circle-exclamation"></i> Reportar Erro</a>
+                </div>
+              </div>
+            </div>
+            <p class="destaque-resumo">${news.resumo}</p>
+            <a href="${news.linkArtigo}" class="btn-ver-artigo"><i class="fa-solid fa-book-open"></i> Ver artigo completo</a>
+            <div class="destaque-info-grid">
+              ${news.ficha.map(item => `<div class="info-item"><span class="info-label">${item.label}</span><span class="info-valor">${item.valor}</span></div>`).join('')}
+              <div class="info-item"><span class="info-label">Edição</span><span class="info-valor">Equipe Técnica</span></div>
+            </div>
+          </div>
+          <div class="destaque-media">
+            <iframe id="player-${news.id}" src="${limparEspacos(news.videoPrincipal)}" allowfullscreen></iframe>
+          </div>
+          <div class="destaque-acoes">
+            <div class="menu-opcoes-container" tabindex="0">
+              <button class="btn-acao"><i class="fa-regular fa-thumbs-up"></i> Útil</button>
+              <div class="dropdown-conteudo acoes-dropdown"><a href="#"><i class="fa-solid fa-heart"></i> Curti artigo</a><a href="#"><i class="fa-brands fa-youtube"></i> Curti vídeo</a></div>
+            </div>
+            <div class="menu-opcoes-container" tabindex="0">
+              <button class="btn-acao" onclick="event.preventDefault(); window.shareNews('${news.titulo.replace(/'/g, "\\'")}', '${shareUrl}')">
+                <i class="fa-solid fa-share-nodes"></i> Compartilhar
+              </button>
+              <div class="dropdown-conteudo acoes-dropdown">
+                <a href="#" onclick="event.preventDefault(); window.shareNews('${news.titulo.replace(/'/g, "\\'")}', '${shareUrl}')"><i class="fa-brands fa-whatsapp"></i> Whatsapp</a>
+                <a href="#" onclick="event.preventDefault(); window.shareNews('${news.titulo.replace(/'/g, "\\'")}', '${shareUrl}')"><i class="fa-brands fa-facebook"></i> Facebook</a>
+              </div>
+            </div>
+          </div>
+          <div class="carrossel-temas">
+            <div class="carrossel-header"><span class="temas-label">Temas relacionados</span><span class="temas-count">${news.relacionados ? news.relacionados.length : 0} VÍDEOS</span></div>
+            <div class="temas-scroll-wrapper"><div class="temas-container">
+                ${news.relacionados ? news.relacionados.map(rel => `
+                  <div class="tema-card" onclick="window.pedirTroca('player-${news.id}', '${rel.idVid}', '${rel.titulo.replace(/'/g, "\\'")}', '${news.cor}')">
+                    <img src="${limparEspacos(rel.thumb)}" class="tema-thumb">
+                    <div class="tema-titulo">${rel.titulo}</div>
+                  </div>`).join('') : ''}
+            </div></div>
+          </div>
+        </article>
+      `;
+      }).join('');
+    }
+
+    function abrirNoticiaEmModal(noticia) {
+      document.getElementById('modal-titulo').textContent = noticia.titulo;
+      document.getElementById('modal-categoria').innerHTML = `<i class="fa-solid fa-video"></i> ${noticia.categoria}`;
+      document.getElementById('modal-resumo').textContent = noticia.resumo;
+      document.getElementById('modal-link').href = noticia.linkArtigo;
+      let fichaHtml = noticia.ficha.map(item => `<div class="info-item"><span class="info-label">${item.label}</span><span class="info-valor">${item.valor}</span></div>`).join('');
+      fichaHtml += `<div class="info-item"><span class="info-label">Edição</span><span class="info-valor">Equipe Técnica</span></div>`;
+      document.getElementById('modal-ficha').innerHTML = fichaHtml;
+      document.getElementById('modal-video').src = limparEspacos(noticia.videoPrincipal);
+      document.getElementById('modal-noticia').style.display = 'block';
+    }
+
+    function verificarNoticiaNaUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      if (id) {
+        const todasNoticias = [...meuFeedNoticias, ...(window.noticiasFirebase || [])];
+        const noticia = todasNoticias.find(n => n.id === id);
+        if (noticia) abrirNoticiaEmModal(noticia);
+      }
+    }
+
+    let primeiraCarga = true;
+    window.noticiasFirebase = [];
+
+    function carregarTudoRealTime() {
+      const q = collection(db, "noticias");
+      onSnapshot(q, (snapshot) => {
+        const noticiasFB = [];
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added" && !primeiraCarga) exibirNotificacaoNovo(change.doc.data().titulo || "Novo artigo publicado");
+        });
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.videoPrincipal) data.videoPrincipal = limparEspacos(data.videoPrincipal);
+          if (data.relacionados) data.relacionados = data.relacionados.map(r => ({ ...r, thumb: limparEspacos(r.thumb) }));
+          noticiasFB.push({ id: doc.id, ...data });
+        });
+        window.noticiasFirebase = noticiasFB;
+        renderizarNoticias([...meuFeedNoticias, ...noticiasFB]);
+        primeiraCarga = false;
+        verificarNoticiaNaUrl();
+      });
+    }
+
+    function exibirNotificacaoNovo(titulo) {
+      const notif = document.getElementById('notificacao-novo-artigo');
+      if(notif) {
+        document.getElementById('novo-artigo-titulo').innerText = titulo;
+        notif.classList.add('mostrar');
+        setTimeout(() => notif.classList.remove('mostrar'), 5000);
+      }
+    }
+
+    carregarTudoRealTime();
+    window.addEventListener('popstate', verificarNoticiaNaUrl);
+  </script>
+</div>
