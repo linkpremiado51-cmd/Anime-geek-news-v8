@@ -1,0 +1,189 @@
+<div class="destaque-wrapper">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <meta property="og:title" content="AniGeekNews - Manchetes">
+  <meta property="og:description" content="As principais notícias e destaques do mundo geek.">
+
+  <div id="notificacao-novo-artigo">
+    <i class="fa-solid fa-bell-concierge"></i>
+    <div>
+      <div style="font-size: 11px; font-weight: 800; opacity: 0.8; text-transform: uppercase;">Novo no site!</div>
+      <div id="novo-artigo-titulo" style="font-size: 14px; font-weight: 700;">Carregando título...</div>
+    </div>
+  </div>
+
+  <div id="container-principal"></div>
+
+  <div id="notificacao-video">
+    <div style="flex: 1;">
+      <div style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Deseja Assistir?</div>
+      <div id="notif-titulo" style="font-size: 13px; font-weight: 700;">Título</div>
+    </div>
+    <button class="btn-confirmar-video" id="btn-confirmar">Confirmar</button>
+    <i class="fa-solid fa-xmark" style="cursor:pointer; padding: 5px;" onclick="window.fecharNotif()"></i>
+  </div>
+
+  <div id="toast-copiado">Link copiado!</div>
+
+  <div id="modal-noticia">
+    <div id="modal-conteudo">
+      <button id="modal-fechar" onclick="window.fecharModal()">×</button>
+      <div id="modal-titulo" class="destaque-titulo" style="margin-top: 0;"></div>
+      <div id="modal-categoria" class="destaque-categoria"></div>
+      <p id="modal-resumo" class="destaque-resumo"></p>
+      <a id="modal-link" class="btn-ver-artigo"><i class="fa-solid fa-book-open"></i> Ver artigo completo</a>
+      <div id="modal-ficha" class="destaque-info-grid"></div>
+      <iframe id="modal-video" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBC_ad4X9OwCHKvcG_pNQkKEl76Zw2tu6o",
+      authDomain: "anigeeknews.firebaseapp.com",
+      projectId: "anigeeknews",
+      storageBucket: "anigeeknews.firebasestorage.app",
+      messagingSenderId: "769322939926",
+      appId: "1:769322939926:web:6eb91a96a3f74670882737",
+      measurementId: "G-G5T8CCRGZT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function limparEspacos(url) {
+      return url ? url.trim() : url;
+    }
+
+    const meuFeedNoticias = [
+      {
+        id: "onepiece",
+        cor: "#e63946",
+        categoria: "Análise Técnica",
+        titulo: "Por que Egghead é o melhor arco de One Piece em décadas",
+        resumo: "Uma análise profunda sobre a mudança estética da Toei Animation e o impacto da direção de arte de Sota Shigeshita.",
+        linkArtigo: "#",
+        ficha: [{ label: "Estúdio", valor: "Toei Animation" }, { label: "Direção", valor: "Sota Shigeshita" }, { label: "Analista", valor: "Gustavo Lima" }],
+        videoPrincipal: "https://www.youtube.com/embed/uJMdqWHlnD4",
+        relacionados: [
+          { idVid: "uJMdqWHlnD4", titulo: "EGGHEAD SE TORNOU O MELHOR ARCO!", thumb: "https://img.youtube.com/vi/uJMdqWHlnD4/mqdefault.jpg" }
+        ]
+      }
+    ];
+
+    window.shareNews = (titulo, url) => {
+      if (navigator.share) {
+        navigator.share({ title: titulo, url }).catch(console.error);
+      } else {
+        alert("Seu navegador não suporta Web Share. Use 'Copiar Link'.");
+      }
+    };
+
+    window.copiarLink = async (url) => {
+      try {
+        await navigator.clipboard.writeText(url);
+        const toast = document.getElementById('toast-copiado');
+        toast.classList.add('mostrar');
+        setTimeout(() => toast.classList.remove('mostrar'), 2000);
+      } catch (err) {
+        console.error("Falha ao copiar:", err);
+      }
+    };
+
+    window.fecharModal = () => {
+      document.getElementById('modal-noticia').style.display = 'none';
+    };
+
+    window.pedirTroca = (idPlayer, idVideo, titulo, cor) => {
+      playerAlvo = idPlayer;
+      urlAlvo = `https://www.youtube.com/embed/${idVideo}?autoplay=1`;
+      const notif = document.getElementById('notificacao-video');
+      document.getElementById('notif-titulo').innerText = titulo;
+      notif.style.setProperty('--notif-cor', cor);
+      notif.classList.add('visivel');
+    };
+
+    window.fecharNotif = () => {
+      document.getElementById('notificacao-video').classList.remove('visivel');
+    };
+
+    let playerAlvo = '';
+    let urlAlvo = '';
+
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    if(btnConfirmar) {
+        btnConfirmar.onclick = () => {
+          const player = document.getElementById(playerAlvo);
+          if (player) player.src = urlAlvo;
+          window.fecharNotif();
+        };
+    }
+
+    function renderizarNoticias(listaCompleta) {
+      const container = document.getElementById('container-principal');
+      if (!container) return;
+      const baseUrl = window.location.origin + window.location.pathname;
+
+      container.innerHTML = listaCompleta.map(news => {
+        const shareUrl = `${baseUrl}?id=${encodeURIComponent(news.id)}`;
+
+        return `
+        <article class="destaque-secao" id="artigo-${news.id}" style="--tema-cor: ${news.cor}">
+          <div class="destaque-padding">
+            <div class="destaque-categoria"><i class="fa-solid fa-video"></i> ${news.categoria}</div>
+            <div class="destaque-header">
+              <h2 class="destaque-titulo">${news.titulo}</h2>
+              <div class="menu-opcoes-container" tabindex="0">
+                <button class="btn-tres-pontos"><i class="fa-solid fa-ellipsis"></i></button>
+                <div class="dropdown-conteudo header-dropdown">
+                  <a href="#"><i class="fa-regular fa-bookmark"></i> Salvar</a>
+                  <a href="#" onclick="event.preventDefault(); window.copiarLink('${shareUrl}');"><i class="fa-regular fa-copy"></i> Copiar Link</a>
+                </div>
+              </div>
+            </div>
+            <p class="destaque-resumo">${news.resumo}</p>
+            <a href="${news.linkArtigo}" class="btn-ver-artigo"><i class="fa-solid fa-book-open"></i> Ver artigo completo</a>
+            <div class="destaque-info-grid">
+              ${news.ficha.map(item => `<div class="info-item"><span class="info-label">${item.label}</span><span class="info-valor">${item.valor}</span></div>`).join('')}
+            </div>
+          </div>
+          <div class="destaque-media">
+            <iframe id="player-${news.id}" src="${limparEspacos(news.videoPrincipal)}" allowfullscreen></iframe>
+          </div>
+          <div class="destaque-acoes">
+              <button class="btn-acao" onclick="event.preventDefault(); window.shareNews('${news.titulo.replace(/'/g, "\\'")}', '${shareUrl}')">
+                <i class="fa-solid fa-share-nodes"></i> Compartilhar
+              </button>
+          </div>
+          <div class="carrossel-temas">
+            <div class="carrossel-header"><span class="temas-label">Vídeos Relacionados</span></div>
+            <div class="temas-scroll-wrapper"><div class="temas-container">
+                ${news.relacionados ? news.relacionados.map(rel => `
+                  <div class="tema-card" onclick="window.pedirTroca('player-${news.id}', '${rel.idVid}', '${rel.titulo.replace(/'/g, "\\'")}', '${news.cor}')">
+                    <img src="${limparEspacos(rel.thumb)}" class="tema-thumb">
+                    <div class="tema-titulo">${rel.titulo}</div>
+                  </div>`).join('') : ''}
+            </div></div>
+          </div>
+        </article>
+      `;
+      }).join('');
+    }
+
+    function carregarTudoRealTime() {
+      const q = collection(db, "noticias");
+      onSnapshot(q, (snapshot) => {
+        const noticiasFB = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          noticiasFB.push({ id: doc.id, ...data });
+        });
+        renderizarNoticias([...meuFeedNoticias, ...noticiasFB]);
+      });
+    }
+
+    carregarTudoRealTime();
+  </script>
+</div>
