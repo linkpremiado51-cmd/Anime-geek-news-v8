@@ -107,7 +107,7 @@
             padding: 10px 20px;
             background: var(--bg);
             border-bottom: 1px solid var(--border);
-            position: relative; /* Importante para a superfície flutuante */
+            position: relative;
         }
         .search-box {
             position: relative;
@@ -134,7 +134,6 @@
             outline: none;
         }
 
-        /* --- NOVA SUPERFÍCIE DE RESULTADOS (ADAPTAÇÃO SOLICITADA) --- */
         #search-results-surface {
             position: absolute;
             top: 100%;
@@ -174,7 +173,6 @@
         .result-info { flex: 1; }
         .result-cat { font-size: 9px; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
         .result-title { font-size: 14px; font-weight: 700; color: var(--text-main); line-height: 1.2; margin: 2px 0; }
-        /* ------------------------------------------------------------ */
 
         .header-actions { display: flex; align-items: center; gap: 20px; }
         .sections-btn {
@@ -311,9 +309,8 @@
 <script type="module">
     // --- FIREBASE SDK ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- CONFIGURAÇÃO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyBC_ad4X9OwCHKvcG_pNQkKEl76Zw2tu6o",
         authDomain: "anigeeknews.firebaseapp.com",
@@ -332,37 +329,49 @@
     const surface = document.getElementById('search-results-surface');
     const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
-    // --- CARREGAMENTO REALTIME ---
-    function carregarNoticiasRealTime() {
-        const q = collection(db, "noticias");
-        onSnapshot(q, (snapshot) => {
-            const noticiasFB = [];
-            snapshot.forEach((doc) => {
-                noticiasFB.push({ id: doc.id, ...doc.data() });
+    // --- FUNÇÃO DE CARREGAMENTO DE MÓDULO (NOVO/EDITADO) ---
+    async function carregarModulo(nome) {
+        if(!displayPrincipal) return;
+        displayPrincipal.innerHTML = '<p style="text-align: center; padding: 100px;">Carregando...</p>';
+        try {
+            const response = await fetch(`./${nome}.html`);
+            const html = await response.text();
+            displayPrincipal.innerHTML = html;
+            // Executa scripts do arquivo carregado
+            const scripts = displayPrincipal.querySelectorAll("script");
+            scripts.forEach(s => {
+                const novoScript = document.createElement("script");
+                novoScript.type = s.type || "text/javascript";
+                if(s.src) novoScript.src = s.src;
+                novoScript.text = s.text;
+                document.body.appendChild(novoScript);
             });
-            window.noticiasFirebase = noticiasFB;
-            
-            // Renderização padrão no início (pode ser o seu outro código de módulos)
-            if (inputBusca.value.trim() === "") {
-                // Aqui você chamaria a função que carrega as manchetes originais
-            }
+        } catch (err) {
+            displayPrincipal.innerHTML = '<p style="text-align: center; padding: 100px;">Erro ao carregar conteúdo.</p>';
+        }
+    }
+
+    // --- ESCUTA FILTROS ---
+    document.querySelectorAll('.filter-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+            document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+            tag.classList.add('active');
+            carregarModulo(tag.dataset.section);
+        });
+    });
+
+    // --- FIREBASE REALTIME PARA BUSCA ---
+    function carregarNoticiasRealTime() {
+        onSnapshot(collection(db, "noticias"), (snapshot) => {
+            window.noticiasFirebase = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         });
     }
 
-    // --- LOGICA DE PESQUISA REFINADA (SUPERFÍCIE) ---
+    // --- LÓGICA DE BUSCA ---
     inputBusca.addEventListener('input', (e) => {
         const termo = e.target.value.toLowerCase().trim();
-        
-        if (termo === "") {
-            surface.style.display = 'none';
-            return;
-        }
-
-        const filtradas = window.noticiasFirebase.filter(n => 
-            n.titulo.toLowerCase().includes(termo) || 
-            (n.categoria && n.categoria.toLowerCase().includes(termo))
-        );
-
+        if (termo === "") { surface.style.display = 'none'; return; }
+        const filtradas = window.noticiasFirebase.filter(n => n.titulo.toLowerCase().includes(termo));
         renderizarSuperficie(filtradas);
     });
 
@@ -370,57 +379,68 @@
         if (lista.length === 0) {
             surface.innerHTML = '<div style="padding:15px; font-size:12px; color:#888;">Nenhum resultado.</div>';
         } else {
-            surface.innerHTML = lista.map(news => {
-                // Busca thumb do primeiro relacionado ou usa padrão
-                const thumb = (news.relacionados && news.relacionados[0]) ? news.relacionados[0].thumb : 'https://anigeeknews.com/default-og.jpg';
-                return `
+            surface.innerHTML = lista.map(news => `
                 <div class="result-item-list" onclick="focarNoticia('${news.id}')">
-                    <img src="${thumb}" class="result-img">
+                    <img src="${news.relacionados?.[0]?.thumb || 'https://anigeeknews.com/default-og.jpg'}" class="result-img">
                     <div class="result-info">
                         <div class="result-cat" style="color: ${news.cor || 'var(--primary)'}">${news.categoria}</div>
                         <h4 class="result-title">${news.titulo}</h4>
                     </div>
                 </div>
-                `;
-            }).join('');
+            `).join('');
         }
         surface.style.display = 'block';
     }
 
-    // --- AÇÃO AO CLICAR NO RESULTADO ---
     window.focarNoticia = (id) => {
         surface.style.display = 'none';
         inputBusca.value = "";
-        
-        // Exemplo: Se quiser carregar o card completo no conteúdo principal ao clicar:
         const noticia = window.noticiasFirebase.find(n => n.id === id);
-        if(noticia && window.renderizarNoticias) {
-             window.renderizarNoticias([noticia]);
-             window.scrollTo({ top: displayPrincipal.offsetTop - 100, behavior: 'smooth' });
-        }
+        if(noticia && window.renderizarNoticias) window.renderizarNoticias([noticia]);
     };
 
-    // Fechar ao clicar fora
+    // Fechar busca ao clicar fora
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.search-bar-wrapper')) surface.style.display = 'none';
     });
 
-    // Inicializar
-    window.addEventListener('DOMContentLoaded', carregarNoticiasRealTime);
+    // Inicialização: Carrega manchetes e inicia escuta do banco
+    window.addEventListener('DOMContentLoaded', () => {
+        carregarNoticiasRealTime();
+        carregarModulo('manchetes'); 
+    });
 </script>
 
 <script>
+    /* LÓGICA DE INTERFACE PRESERVADA */
     function toggleMobileMenu() {
         document.getElementById('mobileMenu').classList.toggle('active');
     }
     function scrollToTop() {
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
+    
+    // Tema Escuro
+    const themeToggle = document.getElementById('mobileThemeToggle');
+    themeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+    
+    // Recupera tema
+    if(localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.checked = true;
+    }
+
     window.onscroll = function() {
         let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         let scrolled = (winScroll / height) * 100;
         document.getElementById("progress-bar").style.width = scrolled + "%";
+        
+        const btn = document.querySelector('.back-to-top');
+        if (winScroll > 300) btn.style.opacity = "1"; else btn.style.opacity = "0";
     };
 </script>
 
