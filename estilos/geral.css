@@ -28,7 +28,7 @@
     --font-logo: "Franklin Gothic", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-/* --- MODO ESCURO --- */
+/* --- MODo ESCURO --- */
 body.dark-mode {
     --bg: #111;
     --card-bg: #111;
