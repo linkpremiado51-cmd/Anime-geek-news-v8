@@ -173,7 +173,7 @@
     }
 
     function carregarTudoRealTime() {
-      const q = collection(db, "noticias");
+      const q = collection(db, "analises");
       onSnapshot(q, (snapshot) => {
         const noticiasFB = [];
         snapshot.forEach((doc) => {
