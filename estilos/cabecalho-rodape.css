@@ -1,278 +1,200 @@
-<div class="destaque-wrapper">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  
-  <style>
-    /* Ajustes de Design Profissional baseados no estilo Manchetes */
-    :root {
-      --font-main: 'Inter', sans-serif;
-      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+/* --- INTEGRAÇÃO COM SEÇÃO DE CONTEÚDO (LANÇAMENTOS/NOTÍCIAS) --- */
 
-    .destaque-wrapper { font-family: var(--font-main); color: var(--text-main); }
+:root {
+    /* Respeitando suas variáveis e adicionando refinamento */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-soft: 0 4px 15px rgba(0,0,0,0.05);
+}
 
-    /* Barra Superior de Notificação Estilizada */
-    #notificacao-novo-artigo {
-      background: #f8f9fa;
-      border-bottom: 1px solid #eee;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
+/* Container de Notificação (Logo abaixo do seu Sticky Header) */
+#notificacao-novo-artigo {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-    /* Card de Artigo Profissional */
-    .destaque-secao {
-      background: #fff;
-      border: 1px solid #eaeaea;
-      margin-bottom: 40px;
-      border-radius: 4px; /* Estilo mais limpo e reto como jornais modernos */
-      overflow: hidden;
-      transition: var(--transition-smooth);
-    }
+/* Card Principal de Conteúdo - Estilo Profissional */
+.destaque-secao {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    margin: 20px auto;
+    max-width: var(--container-w); /* Alinha com a largura do seu nav-container */
+    transition: var(--transition-smooth);
+}
 
-    .destaque-secao:hover {
-      box-shadow: 0 10px 30px rgba(0,0,0,0.09);
-      transform: translateY(-2px);
-    }
+.destaque-secao:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
 
-    .destaque-padding { padding: 25px; }
+.destaque-padding {
+    padding: 25px;
+}
 
-    .destaque-categoria {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--tema-cor);
-      margin-bottom: 12px;
-    }
+.destaque-categoria {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
 
-    .destaque-titulo {
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 1.2;
-      margin-bottom: 15px;
-      letter-spacing: -0.5px;
-    }
+.destaque-titulo {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+    margin-bottom: 15px;
+}
 
-    .destaque-resumo {
-      font-size: 15px;
-      line-height: 1.6;
-      color: #555;
-      margin-bottom: 20px;
-    }
+.destaque-resumo {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 25px;
+}
 
-    /* Botão Ver Artigo (Estilo Manchete) */
-    .btn-ver-artigo {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--tema-cor);
-      color: #fff;
-      text-decoration: none;
-      padding: 12px 24px;
-      border-radius: 4px;
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      transition: var(--transition-smooth);
-    }
+/* Botão de Ação seguindo o padrão de botões do seu sistema */
+.btn-ver-artigo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--primary);
+    color: #ffffff;
+    padding: 12px 25px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
 
-    .btn-ver-artigo:hover { opacity: 0.9; filter: brightness(1.1); }
+.btn-ver-artigo:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
 
-    /* Grid de Informações (Ficha Técnica) */
-    .destaque-info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 15px;
-      margin-top: 25px;
-      padding-top: 20px;
-      border-top: 1px solid #f0f0f0;
-    }
+/* Grid Técnica Profissional */
+.destaque-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
 
-    .info-item { display: flex; flex-direction: column; gap: 4px; }
-    .info-label { font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.5; }
-    .info-valor { font-size: 13px; font-weight: 600; }
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
 
-    /* Media e Video */
-    .destaque-media { position: relative; padding-top: 56.25%; background: #000; }
-    .destaque-media iframe {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
-    }
+.info-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-bottom: 4px;
+}
 
-    /* Carrossel de Relacionados Estilizado */
-    .carrossel-temas { background: #fafafa; padding: 20px; border-top: 1px solid #eee; }
-    .carrossel-header { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
-    .temas-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.info-valor {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+}
 
-    .temas-scroll-wrapper { overflow-x: auto; scrollbar-width: none; }
-    .temas-container { display: flex; gap: 15px; padding-bottom: 10px; }
+/* Media (Vídeo) */
+.destaque-media {
+    position: relative;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    background: #000;
+}
 
-    .tema-card {
-      min-width: 160px; cursor: pointer; transition: var(--transition-smooth);
-    }
+.destaque-media iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
 
-    .tema-thumb {
-      width: 100%; height: 90px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;
-      border: 2px solid transparent;
-    }
+/* Carrossel de Vídeos Relacionados */
+.carrossel-temas {
+    background: rgba(0,0,0,0.02);
+    padding: 20px;
+    border-top: 1px solid var(--border);
+}
 
-    .tema-card:hover .tema-thumb { border-color: var(--tema-cor); }
-    .tema-titulo { font-size: 12px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.temas-label {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-main);
+    margin-bottom: 15px;
+    display: block;
+}
 
-    /* Notificações de Interação */
-    #notificacao-video {
-      position: fixed; bottom: 20px; right: 20px; z-index: 3000;
-      background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 15px;
-      transform: translateX(120%); transition: 0.5s;
-    }
-    #notificacao-video.visivel { transform: translateX(0); }
-    .btn-confirmar-video { background: var(--notif-cor); color: #fff; border: none; padding: 8px 15px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+.temas-container {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+}
 
-    #toast-copiado {
-      position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-      background: #333; color: #fff; padding: 10px 20px; border-radius: 30px;
-      font-size: 12px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 4000;
-    }
-    #toast-copiado.mostrar { opacity: 1; top: 100px; }
-  </style>
+.temas-container::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
 
-  <div id="notificacao-novo-artigo">
-    <i class="fa-solid fa-bullhorn" style="color: #666;"></i>
-    <div>
-      <div style="font-size: 10px; font-weight: 800; opacity: 0.5; text-transform: uppercase;">Em Destaque</div>
-      <div id="novo-artigo-titulo" style="font-size: 13px; font-weight: 700;">Carregando feed...</div>
-    </div>
-  </div>
+.tema-card {
+    min-width: 150px;
+    cursor: pointer;
+}
 
-  <div id="container-principal">
-     <div style="text-align: center; padding: 100px 0; opacity: 0.5;"><i class="fa-solid fa-circle-notch fa-spin"></i> Sincronizando dados...</div>
-  </div>
+.tema-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    transition: var(--transition-smooth);
+}
 
-  <div id="notificacao-video">
-    <div style="flex: 1;">
-      <div style="font-size: 9px; font-weight: 800; opacity: 0.5; text-transform: uppercase;">Trocar vídeo agora?</div>
-      <div id="notif-titulo" style="font-size: 12px; font-weight: 700;">Título do Vídeo</div>
-    </div>
-    <button class="btn-confirmar-video" id="btn-confirmar">SIM</button>
-    <i class="fa-solid fa-xmark" style="cursor:pointer; padding: 5px; opacity: 0.5;" onclick="window.fecharNotif()"></i>
-  </div>
+.tema-card:hover .tema-thumb {
+    border-color: var(--primary);
+}
 
-  <div id="toast-copiado">LINK COPIADO COM SUCESSO</div>
+.tema-titulo {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.3;
+}
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+/* Toast de Link Copiado */
+#toast-copiado {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-main);
+    color: var(--bg);
+    padding: 12px 25px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    z-index: 5000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: none; /* Ativado via JS com .classList.add('mostrar') ou display */
+}
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBC_ad4X9OwCHKvcG_pNQkKEl76Zw2tu6o",
-      authDomain: "anigeeknews.firebaseapp.com",
-      projectId: "anigeeknews",
-      storageBucket: "anigeeknews.firebasestorage.app",
-      messagingSenderId: "769322939926",
-      appId: "1:769322939926:web:6eb91a96a3f74670882737"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    let playerAlvo = '';
-    let urlAlvo = '';
-
-    window.copiarLink = async (url) => {
-      try {
-        await navigator.clipboard.writeText(url);
-        const toast = document.getElementById('toast-copiado');
-        toast.classList.add('mostrar');
-        setTimeout(() => toast.classList.remove('mostrar'), 2500);
-      } catch (err) { console.error(err); }
-    };
-
-    window.pedirTroca = (idPlayer, idVideo, titulo, cor) => {
-      playerAlvo = idPlayer;
-      urlAlvo = `https://www.youtube.com/embed/${idVideo}?autoplay=1`;
-      const notif = document.getElementById('notificacao-video');
-      document.getElementById('notif-titulo').innerText = titulo;
-      notif.style.setProperty('--notif-cor', cor);
-      notif.classList.add('visivel');
-    };
-
-    window.fecharNotif = () => document.getElementById('notificacao-video').classList.remove('visivel');
-
-    document.getElementById('btn-confirmar').onclick = () => {
-      const player = document.getElementById(playerAlvo);
-      if (player) player.src = urlAlvo;
-      window.fecharNotif();
-    };
-
-    function renderizarNoticias(listaCompleta) {
-      const container = document.getElementById('container-principal');
-      const baseUrl = window.location.origin + window.location.pathname;
-
-      container.innerHTML = listaCompleta.map(news => {
-        const shareUrl = `${baseUrl}?id=${encodeURIComponent(news.id)}`;
-        return `
-        <article class="destaque-secao" style="--tema-cor: ${news.cor}">
-          <div class="destaque-padding">
-            <div class="destaque-categoria">${news.categoria}</div>
-            <div class="destaque-header" style="display:flex; justify-content:space-between; align-items: flex-start; gap: 15px;">
-              <h2 class="destaque-titulo">${news.titulo}</h2>
-              <button onclick="window.copiarLink('${shareUrl}')" style="background:none; border:none; cursor:pointer; font-size: 18px; opacity:0.3;"><i class="fa-solid fa-link"></i></button>
-            </div>
-            <p class="destaque-resumo">${news.resumo}</p>
-            <a href="${news.linkArtigo}" target="_blank" class="btn-ver-artigo"><i class="fa-solid fa-arrow-right"></i> Ler Artigo Completo</a>
-            
-            <div class="destaque-info-grid">
-              ${news.ficha ? news.ficha.map(item => `
-                <div class="info-item">
-                  <span class="info-label">${item.label}</span>
-                  <span class="info-valor">${item.valor}</span>
-                </div>`).join('') : ''}
-            </div>
-          </div>
-
-          <div class="destaque-media">
-            <iframe id="player-${news.id}" src="${news.videoPrincipal}" allowfullscreen></iframe>
-          </div>
-
-          <div class="carrossel-temas">
-            <div class="carrossel-header">
-                <span class="temas-label">Conteúdo Relacionado</span>
-                <i class="fa-solid fa-chevron-right" style="font-size:10px; opacity:0.3;"></i>
-            </div>
-            <div class="temas-scroll-wrapper">
-                <div class="temas-container">
-                    ${news.relacionados ? news.relacionados.map(rel => `
-                      <div class="tema-card" onclick="window.pedirTroca('player-${news.id}', '${rel.idVid}', '${rel.titulo.replace(/'/g, "\\'")}', '${news.cor}')">
-                        <img src="${rel.thumb}" class="tema-thumb">
-                        <div class="tema-titulo">${rel.titulo}</div>
-                      </div>`).join('') : ''}
-                </div>
-            </div>
-          </div>
-        </article>`;
-      }).join('');
-    }
-
-    function carregarTudoRealTime() {
-      // APENAS MUDE O NOME ABAIXO PARA CADA ARQUIVO (noticias, lancamentos, podcast, etc)
-      const q = collection(db, "lancamentos");
-      
-      onSnapshot(q, (snapshot) => {
-        const dados = [];
-        snapshot.forEach((doc) => dados.push({ id: doc.id, ...doc.data() }));
-        
-        if (dados.length === 0) {
-            document.getElementById('container-principal').innerHTML = "<div style='text-align:center; padding:100px; opacity:0.5;'>Nenhuma publicação disponível.</div>";
-        } else {
-            renderizarNoticias(dados);
-            document.getElementById('novo-artigo-titulo').innerText = dados[0].titulo;
-        }
-      });
-    }
-
-    carregarTudoRealTime();
-  </script>
-</div>
+/* Ajustes para Celular */
+@media (max-width: 600px) {
+    .destaque-titulo { font-size: 20px; }
+    .destaque-secao { margin: 10px; }
+    .destaque-info-grid { grid-template-columns: 1fr 1fr; }
+}
