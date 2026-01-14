@@ -16,13 +16,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- UNIFICAÇÃO GLOBAL PARA A BUSCA E MOdAL ---
+// --- UNIFICAÇÃO GLOBAL PARA A BUSCA E MODAL ---
 window.noticiasFirebase = [];
+let linkProcessado = false; // Evita que o modal fique reabrindo sozinho em updates do Firebase
 
 /**
- * Verifica se há um ID na URL e abre o modal se a notícia for encontrada
+ * Verifica se há um ID na URL e abre o modal se a notícia for encontrada.
+ * Esta função agora é exportada para o window para que outros scripts possam re-ativá-la.
  */
-function verificarGatilhoDeLink() {
+window.verificarGatilhoDeLink = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const idDesejado = urlParams.get('id');
 
@@ -32,9 +34,10 @@ function verificarGatilhoDeLink() {
         if (noticiaEncontrada && typeof window.abrirModalNoticia === 'function') {
             console.log("🎯 Link detectado! Abrindo modal para:", idDesejado);
             window.abrirModalNoticia(noticiaEncontrada);
+            linkProcessado = true; 
         }
     }
-}
+};
 
 /**
  * Sincronização inteligente multisseção
@@ -54,13 +57,16 @@ function sincronizarComBusca(nomeColecao) {
             
             window.noticiasFirebase.push(...novosDados);
             
-            // 3. Ordena globalmente
+            // 3. Ordena globalmente por data (se o campo 'data' existir)
             window.noticiasFirebase.sort((a, b) => (b.data || 0) - (a.data || 0));
             
             console.log(`✅ [Firebase] Sincronizado: ${nomeColecao}`);
 
-            // 4. GATILHO: Sempre que os dados mudarem ou carregarem, checa a URL
-            verificarGatilhoDeLink();
+            // 4. GATILHO: Checa a URL. 
+            // Só processa se ainda não foi processado nesta carga de página ou se a URL mudar
+            if (!linkProcessado) {
+                window.verificarGatilhoDeLink();
+            }
 
         }, (error) => {
             console.error(`❌ Erro ao sincronizar ${nomeColecao}:`, error);
@@ -70,13 +76,16 @@ function sincronizarComBusca(nomeColecao) {
     }
 }
 
-// Expõe ferramentas para os scripts de seção (.html)
+// Expõe ferramentas essenciais para os scripts de seção (.html)
 window.db = db;
 window.collection = collection;
 window.onSnapshot = onSnapshot;
 
-// Inicializa o monitoramento das coleções
+// Inicializa o monitoramento das coleções principais do portal
 const colecoesParaMonitorar = ["noticias", "lancamentos", "analises", "entrevistas", "podcast"];
 colecoesParaMonitorar.forEach(nome => sincronizarComBusca(nome));
+
+// Escuta mudanças de navegação (voltar/avançar no browser) para re-checar a URL
+window.addEventListener('popstate', window.verificarGatilhoDeLink);
 
 console.log("🔥 Motor AniGeekNews v2: Sincronização e Gatilhos ativados.");
