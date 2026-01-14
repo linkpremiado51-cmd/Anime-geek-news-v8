@@ -156,15 +156,15 @@
         setTimeout(openB1, 80000);
     };
 
-    // Lógica Bloco 3 (Superior) - Reaparece em 85s (25s originais + 60s)
+    // Lógica Bloco 3 (Superior) - Reaparece em 10s após fechar
     document.getElementById('ind-close-3').onclick = () => {
         b3.style.top = '-600px';
-        setTimeout(openB3, 60);
+        setTimeout(openB3, 10000); // 10 segundos
     };
 
     // Motor do Interstitial (Bloco 2)
     function startInterstitial() {
-        // Primeira exibição ocorre em 70s (10s originais + 60s)
+        // Primeira exibição ocorre em 5s
         setTimeout(() => {
             b2Overlay.style.display = 'flex';
             setTimeout(() => {
@@ -172,8 +172,8 @@
                 b2Modal.style.transform = 'translateY(0)';
             }, 50);
 
-            let timeLeft = 70; // 10s originais + 60s
-            const totalDuration = 70;
+            let timeLeft = 5; // 5 segundos
+            const totalDuration = 5;
             const btn = document.getElementById('ind-close-2');
             const prog = document.getElementById('ind-prog-2');
             const txt = document.getElementById('ind-timer-txt');
@@ -201,23 +201,23 @@
                 b2Modal.style.transform = 'translateY(20px)';
                 setTimeout(() => {
                     b2Overlay.style.display = 'none';
-                    // Reinicia após 180 segundos (120s originais + 60s)
-                    setTimeout(startInterstitial, 180000);
+                    // Reinicia após 5 segundos
+                    setTimeout(startInterstitial, 5000);
                 }, 500);
                 
                 // Reset imediato para próximo ciclo
-                timeLeft = 70;
+                timeLeft = 5;
                 btn.disabled = true;
                 btn.classList.remove('ready');
                 btn.innerText = "Aguarde";
                 prog.style.width = "0%";
             };
-        }, 70000);
+        }, 5000);
     }
 
-    // Inicialização do Sistema com +60s nos delays iniciais
-    setTimeout(openB1, 62000); // 2s original + 60s
-    setTimeout(openB3, 64000); // 4s original + 60s
+    // Inicialização do Sistema
+    setTimeout(openB1, 2000); // B1 aparece em 2s
+    setTimeout(openB3, 4000); // B3 aparece em 4s
     startInterstitial();
 
 })();
