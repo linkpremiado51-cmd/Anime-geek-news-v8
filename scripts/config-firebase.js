@@ -22,7 +22,6 @@ let linkProcessado = false; // Evita que o modal fique reabrindo sozinho em upda
 
 /**
  * Verifica se há um ID na URL e abre o modal se a notícia for encontrada.
- * Esta função agora é exportada para o window para que outros scripts possam re-ativá-la.
  */
 window.verificarGatilhoDeLink = function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -45,10 +44,10 @@ window.verificarGatilhoDeLink = function() {
 function sincronizarComBusca(nomeColecao) {
     try {
         onSnapshot(collection(db, nomeColecao), (snapshot) => {
-            // 1. Limpa os dados antigos apenas desta coleção específica no array global
+            // 1. Remove apenas os dados dessa coleção
             window.noticiasFirebase = window.noticiasFirebase.filter(item => item.origem !== nomeColecao);
             
-            // 2. Mapeia e injeta os novos dados
+            // 2. Injeta os novos dados
             const novosDados = snapshot.docs.map(doc => ({ 
                 id: doc.id, 
                 origem: nomeColecao, 
@@ -57,13 +56,12 @@ function sincronizarComBusca(nomeColecao) {
             
             window.noticiasFirebase.push(...novosDados);
             
-            // 3. Ordena globalmente por data (se o campo 'data' existir)
+            // 3. Ordena tudo por data
             window.noticiasFirebase.sort((a, b) => (b.data || 0) - (a.data || 0));
             
             console.log(`✅ [Firebase] Sincronizado: ${nomeColecao}`);
 
-            // 4. GATILHO: Checa a URL. 
-            // Só processa se ainda não foi processado nesta carga de página ou se a URL mudar
+            // 4. Gatilho de link
             if (!linkProcessado) {
                 window.verificarGatilhoDeLink();
             }
@@ -76,16 +74,24 @@ function sincronizarComBusca(nomeColecao) {
     }
 }
 
-// Expõe ferramentas essenciais para os scripts de seção (.html)
+// Expõe para as páginas de seção
 window.db = db;
 window.collection = collection;
 window.onSnapshot = onSnapshot;
 
-// Inicializa o monitoramento das coleções principais do portal
-const colecoesParaMonitorar = ["noticias", "lancamentos", "analises", "entrevistas", "podcast"];
+// 🔥 COLEÇÕES ATIVAS (AGORA COM FUTEBOL)
+const colecoesParaMonitorar = [
+    "noticias",
+    "lancamentos",
+    "analises",
+    "entrevistas",
+    "podcast",
+    "futebol"
+];
+
 colecoesParaMonitorar.forEach(nome => sincronizarComBusca(nome));
 
-// Escuta mudanças de navegação (voltar/avançar no browser) para re-checar a URL
+// Escuta navegação do navegador (voltar / avançar)
 window.addEventListener('popstate', window.verificarGatilhoDeLink);
 
 console.log("🔥 Motor AniGeekNews v2: Sincronização e Gatilhos ativados.");
