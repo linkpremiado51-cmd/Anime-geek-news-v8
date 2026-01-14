@@ -3,7 +3,8 @@
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
 /**
- * VERSÃO EDITADA: Abre a notícia garantindo que o motor de renderização da seção seja injetado corretamente
+ * Abre a notícia garantindo que o motor de renderização da seção seja injetado corretamente.
+ * Utilizado para visualização em "página cheia" (Full Page View).
  */
 async function abrirNoticiaUnica(item) {
     if (!displayPrincipal) return;
@@ -12,8 +13,7 @@ async function abrirNoticiaUnica(item) {
         // 1. Carrega o CSS da seção de origem
         gerenciarCSSDaSecao(item.origem || 'manchetes');
 
-        // 2. Prepara o layout com o botão de Voltar. 
-        // IMPORTANTE: O container agora usa o ID 'container-principal' para bater com o que a seção espera
+        // 2. Prepara o layout com o botão de Voltar
         displayPrincipal.innerHTML = `
             <div class="foco-noticia-wrapper" style="animation: fadeIn 0.4s ease; max-width: var(--container-w); margin: 0 auto; padding: 20px;">
                 <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
@@ -33,24 +33,17 @@ async function abrirNoticiaUnica(item) {
         if (!response.ok) throw new Error("Falha ao carregar motor de renderização.");
         const htmlBase = await response.text();
 
-        // 4. Extrai os scripts. Como sua seção usa type="module", precisamos forçar
-        // a função renderizarNoticias para o window.
         const parser = new DOMParser();
         const docSeçao = parser.parseFromString(htmlBase, 'text/html');
         const scripts = docSeçao.querySelectorAll("script");
 
         scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
-            
-            // Se for módulo, mantemos, mas vamos injetar uma "ponte"
             if (oldScript.type === 'module' || !oldScript.type) {
                 let conteudo = oldScript.textContent;
-                
-                // Técnica para expor a função de renderização ao window mesmo sendo module
                 if (conteudo.includes('function renderizarNoticias')) {
                     conteudo += `\n window.renderizarNoticias = renderizarNoticias;`;
                 }
-                
                 newScript.type = 'module';
                 newScript.textContent = conteudo;
             } else {
@@ -60,24 +53,18 @@ async function abrirNoticiaUnica(item) {
             document.head.appendChild(newScript);
         });
 
-        // 5. Tentativa de renderização com verificação de segurança
         let tentativas = 0;
         const tentarRenderizar = () => {
             if (typeof window.renderizarNoticias === 'function') {
-                // Limpa o aviso de carregamento
                 const container = document.getElementById('container-principal');
                 if (container) container.innerHTML = "";
-                
                 window.renderizarNoticias([item]);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (tentativas < 20) {
                 tentativas++;
                 setTimeout(tentarRenderizar, 150);
-            } else {
-                console.error("Motor de renderização não respondeu.");
             }
         };
-
         tentarRenderizar();
 
     } catch (err) {
@@ -87,20 +74,32 @@ async function abrirNoticiaUnica(item) {
 }
 
 /**
- * NOVA FUNÇÃO: Vigia de URL para Links Compartilhados (?id=...)
+ * Vigia de URL para Links Compartilhados (?id=...)
+ * Agora integrado com o Modal Global do index.html
  */
 function verificarLinkCompartilhado() {
     const params = new URLSearchParams(window.location.search);
     const idNoticia = params.get('id');
 
     if (idNoticia) {
-        displayPrincipal.innerHTML = '<div style="text-align: center; padding: 99px; color: var(--text-muted);">Sincronizando notícia...</div>';
+        // Mostra um loader enquanto o Firebase sincroniza
+        if (displayPrincipal) {
+            displayPrincipal.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); font-family: sans-serif; letter-spacing: 1px;">BUSCANDO NOTÍCIA...</div>';
+        }
 
         const checkData = setInterval(() => {
             if (window.noticiasFirebase && window.noticiasFirebase.length > 0) {
                 const item = window.noticiasFirebase.find(n => n.id === idNoticia);
                 if (item) {
-                    abrirNoticiaUnica(item);
+                    // PRIORIDADE: Abre no Modal Global para não quebrar a navegação de fundo
+                    if (typeof window.abrirModalNoticia === 'function') {
+                        window.abrirModalNoticia(item);
+                        // Carrega a seção de fundo padrão (manchetes) para o site não ficar vazio atrás do modal
+                        carregarSecao('manchetes');
+                    } else {
+                        // Fallback para página cheia caso o modal falhe
+                        abrirNoticiaUnica(item);
+                    }
                 } else {
                     carregarSecao('manchetes');
                 }
@@ -113,7 +112,7 @@ function verificarLinkCompartilhado() {
 }
 
 /**
- * Função para limpar o ID da URL e restaurar a visualização da seção
+ * Limpa o ID da URL e restaura a visualização da lista
  */
 window.voltarParaLista = function() {
     const url = new URL(window.location);
@@ -127,7 +126,7 @@ window.voltarParaLista = function() {
 };
 
 /**
- * Gerencia o carregamento de CSS específico para cada seção
+ * Gerencia o carregamento de CSS específico
  */
 function gerenciarCSSDaSecao(nome) {
     const linkAntigo = document.getElementById('css-secao-dinamica');
@@ -141,12 +140,12 @@ function gerenciarCSSDaSecao(nome) {
 }
 
 /**
- * Carrega dinamicamente o conteúdo HTML de uma seção
+ * Carrega dinamicamente o feed de uma seção
  */
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
-    displayPrincipal.innerHTML = '<div style="text-align: center; padding: 99px; color: var(--text-muted);">Sincronizando feed...</div>';
+    displayPrincipal.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); opacity: 0.5;">SINCRONIZANDO...</div>';
     
     try {
         gerenciarCSSDaSecao(nome);
@@ -157,12 +156,13 @@ async function carregarSecao(nome) {
         const html = await response.text();
         displayPrincipal.innerHTML = html;
 
+        // Re-executa os scripts da seção para renderizar os dados do Firebase
         const scripts = displayPrincipal.querySelectorAll("script");
         scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
             newScript.type = oldScript.type || "text/javascript";
             if (oldScript.src) newScript.src = oldScript.src;
-            newScript.text = oldScript.text;
+            newScript.textContent = oldScript.textContent;
             document.body.appendChild(newScript);
         });
 
@@ -173,7 +173,7 @@ async function carregarSecao(nome) {
     }
 }
 
-// Eventos de clique nas tags
+// Eventos de clique nas categorias (Filtros)
 document.querySelectorAll('.filter-tag').forEach(tag => {
     tag.addEventListener('click', () => {
         document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
@@ -187,6 +187,7 @@ window.toggleMobileMenu = function() {
     if (menu) menu.classList.toggle('active');
 };
 
+// Inicialização
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     if (params.has('id')) {
@@ -196,5 +197,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Exposição global para integração entre arquivos
 window.carregarSecao = carregarSecao;
 window.abrirNoticiaUnica = abrirNoticiaUnica;
