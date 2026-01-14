@@ -4,7 +4,7 @@ const inputBusca = document.getElementById('input-busca-global');
 const surface = document.getElementById('search-results-surface');
 
 /**
- * Realça o termo pesquisado para dar um visual mais profissional
+ * Realça o termo pesquisado para dar um visual maiS profissional
  */
 const destacarTexto = (texto, termo) => {
     if (!termo) return texto;
