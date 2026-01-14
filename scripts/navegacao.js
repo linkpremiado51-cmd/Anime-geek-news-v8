@@ -3,41 +3,65 @@
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
 /**
- * NOVA FUNÇÃO: Renderiza apenas uma notícia na tela (Janela de foco)
- * Limpa o conteúdo atual para exibir o item vindo da busca ou link direto.
+ * VERSÃO CORRIGIDA: Renderiza a notícia garantindo que os scripts da seção existam
  */
-function abrirNoticiaUnica(item) {
+async function abrirNoticiaUnica(item) {
     if (!displayPrincipal) return;
 
-    // 1. Carrega o CSS da seção de origem (ex: lancamentos.css) para manter o estilo do card
-    gerenciarCSSDaSecao(item.origem || 'manchetes');
+    try {
+        // 1. Carrega o CSS da seção de origem para manter o layout
+        gerenciarCSSDaSecao(item.origem || 'manchetes');
 
-    // 2. Prepara a estrutura. Como o DOM é limpo, usamos um botão de "VOLTAR"
-    displayPrincipal.innerHTML = `
-        <div class="foco-noticia-wrapper" style="animation: fadeIn 0.4s ease; max-width: var(--container-w); margin: 0 auto; padding: 20px;">
-            <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
-                <button onclick="window.voltarParaLista()" class="btn-voltar-estilizado" style="background: none; border: 1px solid var(--text-main); color: var(--text-main); padding: 8px 18px; font-size: 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; text-transform: uppercase;">
-                    <i class="fa-solid fa-chevron-left" style="font-size: 14px;"></i> 
-                    <span>Voltar para ${item.origem ? item.origem : 'Início'}</span>
-                </button>
-            </div>
-            <div id="container-render-unico">
+        // 2. BUSCA O CONTEÚDO DA SEÇÃO (Onde está a lógica de renderização)
+        // Isso é crucial para que o window.renderizarNoticias passe a existir
+        const response = await fetch(`./secoes/${item.origem || 'manchetes'}.html`);
+        if (!response.ok) throw new Error("Falha ao carregar motor de renderização.");
+        const htmlBase = await response.text();
+
+        // 3. Prepara a estrutura visual com o botão de Voltar
+        displayPrincipal.innerHTML = `
+            <div class="foco-noticia-wrapper" style="animation: fadeIn 0.4s ease; max-width: var(--container-w); margin: 0 auto; padding: 20px;">
+                <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
+                    <button onclick="window.voltarParaLista()" class="btn-voltar-estilizado" style="background: none; border: 1px solid var(--text-main); color: var(--text-main); padding: 8px 18px; font-size: 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; text-transform: uppercase;">
+                        <i class="fa-solid fa-chevron-left" style="font-size: 14px;"></i> 
+                        <span>Voltar para ${item.origem ? item.origem.toUpperCase() : 'Início'}</span>
+                    </button>
                 </div>
-        </div>
-    `;
+                <div id="container-render-unico">
+                    </div>
+            </div>
+        `;
 
-    // 3. Função recursiva interna para garantir que o script de renderização carregou
-    const tentarRenderizar = () => {
-        if (typeof window.renderizarNoticias === 'function') {
-            window.renderizarNoticias([item]);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-            // Se a função de renderizar ainda não existe no escopo, tentamos de novo em 200ms
-            setTimeout(tentarRenderizar, 200);
-        }
-    };
+        // 4. Injeta os scripts da seção para que a função renderizarNoticias seja registrada
+        const parser = new DOMParser();
+        const docSeçao = parser.parseFromString(htmlBase, 'text/html');
+        const scripts = docSeçao.querySelectorAll("script");
 
-    tentarRenderizar();
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement("script");
+            newScript.type = oldScript.type || "text/javascript";
+            if (oldScript.src) newScript.src = oldScript.src;
+            newScript.text = oldScript.text;
+            document.body.appendChild(newScript);
+        });
+
+        // 5. Agora sim, tenta renderizar a notícia usando o motor da seção carregada
+        const tentarRenderizar = () => {
+            if (typeof window.renderizarNoticias === 'function') {
+                window.renderizarNoticias([item]);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // Tenta novamente em intervalos curtos caso o script demore a processar
+                setTimeout(tentarRenderizar, 100);
+            }
+        };
+
+        tentarRenderizar();
+
+    } catch (err) {
+        console.error("Erro na ponte de navegação:", err);
+        displayPrincipal.innerHTML = `<div style="padding:100px; text-align:center;">Erro ao carregar conteúdo.</div>`;
+    }
 }
 
 /**
@@ -48,24 +72,20 @@ function verificarLinkCompartilhado() {
     const idNoticia = params.get('id');
 
     if (idNoticia) {
-        // Exibe um loader temporário enquanto o Firebase carrega
-        displayPrincipal.innerHTML = '<div style="text-align: center; padding: 99px; color: var(--text-muted);">Localizando notícia...</div>';
+        displayPrincipal.innerHTML = '<div style="text-align: center; padding: 99px; color: var(--text-muted);">Sincronizando notícia...</div>';
 
-        // Aguarda o Firebase alimentar o array global antes de procurar
         const checkData = setInterval(() => {
             if (window.noticiasFirebase && window.noticiasFirebase.length > 0) {
                 const item = window.noticiasFirebase.find(n => n.id === idNoticia);
                 if (item) {
                     abrirNoticiaUnica(item);
                 } else {
-                    // Se não achar o ID após carregar os dados, volta para manchetes
                     carregarSecao('manchetes');
                 }
                 clearInterval(checkData);
             }
         }, 100);
         
-        // Timeout de segurança (5 segundos) para não travar o site se o Firebase falhar
         setTimeout(() => clearInterval(checkData), 5000);
     }
 }
@@ -74,12 +94,10 @@ function verificarLinkCompartilhado() {
  * Função para limpar o ID da URL e restaurar a visualização da seção
  */
 window.voltarParaLista = function() {
-    // 1. Remove o parâmetro ID da URL sem recarregar a página
     const url = new URL(window.location);
     url.searchParams.delete('id');
     window.history.pushState({}, '', url);
 
-    // 2. Identifica qual seção estava ativa antes ou carrega manchetes por padrão
     const tagAtiva = document.querySelector('.filter-tag.active');
     const secaoDestino = tagAtiva ? tagAtiva.dataset.section : 'manchetes';
     
@@ -117,7 +135,6 @@ async function carregarSecao(nome) {
         const html = await response.text();
         displayPrincipal.innerHTML = html;
 
-        // Ativa scripts do HTML carregado
         const scripts = displayPrincipal.querySelectorAll("script");
         scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
@@ -134,7 +151,7 @@ async function carregarSecao(nome) {
     }
 }
 
-// Escuta os cliques nas tags de filtro
+// Tags de filtro
 document.querySelectorAll('.filter-tag').forEach(tag => {
     tag.addEventListener('click', () => {
         document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
@@ -143,18 +160,13 @@ document.querySelectorAll('.filter-tag').forEach(tag => {
     });
 });
 
-// Menu Mobile
 window.toggleMobileMenu = function() {
     const menu = document.getElementById('mobileMenu');
     if (menu) menu.classList.toggle('active');
 };
 
-/**
- * INICIALIZAÇÃO INTELIGENTE: Decide se abre uma notícia ou o feed
- */
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
-    
     if (params.has('id')) {
         verificarLinkCompartilhado();
     } else {
@@ -162,6 +174,5 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Exportação global
 window.carregarSecao = carregarSecao;
 window.abrirNoticiaUnica = abrirNoticiaUnica;
