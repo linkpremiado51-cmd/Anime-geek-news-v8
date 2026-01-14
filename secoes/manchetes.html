@@ -1,34 +1,65 @@
 <div class="destaque-wrapper">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <meta property="og:title" content="AniGeekNews - Manchetes">
-  <meta property="og:description" content="As principais notícias e destaques do mundo geek.">
 
   <div id="notificacao-novo-artigo">
-    <i class="fa-solid fa-bell-concierge"></i>
+    <i class="fa-solid fa-fire-pulse"></i>
     <div>
-      <div style="font-size: 11px; font-weight: 800; opacity: 0.8; text-transform: uppercase;">Novo no site!</div>
-      <div id="novo-artigo-titulo" style="font-size: 14px; font-weight: 700;">Carregando Título...</div>
+      <div style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px;">Breaking News</div>
+      <div id="novo-artigo-titulo" style="font-size: 13px; font-weight: 700;">Sincronizando feed...</div>
     </div>
   </div>
 
   <div id="container-principal"></div>
   
-  <div id="pagination-control" style="text-align: center; padding: 20px; display: none;">
-      <button id="btn-carregar-mais" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 14px;">
-          <i class="fa-solid fa-plus"></i> Carregar mais notícias
+  <div id="pagination-control" style="text-align: center; padding: 40px 0; display: none;">
+      <button id="btn-carregar-mais" class="btn-load-more">
+          <i class="fa-solid fa-ellipsis"></i> Carregar mais conteúdos
       </button>
   </div>
 
+  <div id="modal-comentarios-geek" class="modal-geek-overlay">
+    <div class="modal-geek-content">
+      <div class="modal-geek-header">
+        <div class="header-info">
+          <i class="fa-solid fa-comments"></i>
+          <span>Comentários <small id="count-com">12</small></span>
+        </div>
+        <button onclick="window.fecharComentarios()" class="close-geek">×</button>
+      </div>
+      
+      <div class="modal-geek-body" id="flow-comentarios">
+        <div class="geek-comment">
+          <div class="geek-avatar" style="background: linear-gradient(45deg, #e63946, #ffb100);">A</div>
+          <div class="geek-com-details">
+            <div class="geek-user-name">AniGeek User <span class="badge-editor">VIP</span></div>
+            <div class="geek-text">O arco de Egghead está redefinindo o que esperamos de animação semanal. Incrível!</div>
+            <div class="geek-footer">
+              <span class="geek-time">há 2 horas</span>
+              <div class="geek-likes"><i class="fa-regular fa-heart"></i> 24</div>
+              <span class="geek-reply">Responder</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-geek-input">
+        <div class="input-wrapper">
+          <input type="text" placeholder="Adicione um comentário..." id="main-input-com">
+          <button class="btn-send-geek"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-copiado">Link copiado com sucesso!</div>
   <div id="notificacao-video">
     <div style="flex: 1;">
-      <div style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Deseja Assistir?</div>
+      <div style="font-size: 10px; font-weight: 800; opacity: 0.6;">Deseja assistir este vídeo?</div>
       <div id="notif-titulo" style="font-size: 13px; font-weight: 700;">Título</div>
     </div>
     <button class="btn-confirmar-video" id="btn-confirmar">Confirmar</button>
     <i class="fa-solid fa-xmark" style="cursor:pointer; padding: 5px;" onclick="window.fecharNotif()"></i>
   </div>
-
-  <div id="toast-copiado">Link copiado!</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -47,13 +78,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Variáveis de Controle de Paginação
     let todasAsNoticias = [];
     let noticiasExibidas = 5;
 
-    function limparEspacos(url) {
-      return url ? url.trim() : url;
-    }
+    // Funções de Modal
+    window.abrirComentarios = (id) => {
+      document.getElementById('modal-comentarios-geek').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.fecharComentarios = () => {
+      document.getElementById('modal-comentarios-geek').classList.remove('active');
+      document.body.style.overflow = 'auto';
+    };
 
     window.shareNews = (titulo, url) => {
       if (navigator.share) {
@@ -69,35 +106,8 @@
         const toast = document.getElementById('toast-copiado');
         toast.classList.add('mostrar');
         setTimeout(() => toast.classList.remove('mostrar'), 2000);
-      } catch (err) {
-        console.error("Falha ao copiar:", err);
-      }
+      } catch (err) { console.error(err); }
     };
-
-    window.pedirTroca = (idPlayer, idVideo, titulo, cor) => {
-      playerAlvo = idPlayer;
-      urlAlvo = `https://www.youtube.com/embed/${idVideo}?autoplay=1`;
-      const notif = document.getElementById('notificacao-video');
-      document.getElementById('notif-titulo').innerText = titulo;
-      notif.style.setProperty('--notif-cor', cor);
-      notif.classList.add('visivel');
-    };
-
-    window.fecharNotif = () => {
-      document.getElementById('notificacao-video').classList.remove('visivel');
-    };
-
-    let playerAlvo = '';
-    let urlAlvo = '';
-
-    const btnConfirmar = document.getElementById('btn-confirmar');
-    if(btnConfirmar) {
-        btnConfirmar.onclick = () => {
-          const player = document.getElementById(playerAlvo);
-          if (player) player.src = urlAlvo;
-          window.fecharNotif();
-        };
-    }
 
     function renderizarNoticias() {
       const container = document.getElementById('container-principal');
@@ -105,100 +115,88 @@
       if (!container) return;
 
       const baseUrl = window.location.origin + window.location.pathname;
-      
-      // Corta o array para mostrar apenas a quantidade permitida
       const listaParaExibir = todasAsNoticias.slice(0, noticiasExibidas);
 
       container.innerHTML = listaParaExibir.map(news => {
         const shareUrl = `${baseUrl}?id=${encodeURIComponent(news.id)}`;
+        const viewsRandom = (Math.random() * (500 - 10) + 10).toFixed(1) + "K";
 
         return `
-        <article class="destaque-secao" id="artigo-${news.id}" style="--tema-cor: ${news.cor}">
+        <article class="destaque-secao" style="--tema-cor: ${news.cor}">
           <div class="destaque-padding">
-            <div class="destaque-categoria"><i class="fa-solid fa-video"></i> ${news.categoria}</div>
-            <div class="destaque-header">
-              <h2 class="destaque-titulo">${news.titulo}</h2>
-              <div class="menu-opcoes-container" tabindex="0">
-                <button class="btn-tres-pontos"><i class="fa-solid fa-ellipsis"></i></button>
-                <div class="dropdown-conteudo header-dropdown">
-                  <a href="#"><i class="fa-regular fa-bookmark"></i> Salvar</a>
-                  <a href="#" onclick="event.preventDefault(); window.copiarLink('${shareUrl}');"><i class="fa-regular fa-copy"></i> Copiar Link</a>
-                </div>
-              </div>
-            </div>
+            <div class="destaque-categoria"><i class="fa-solid fa-clapperboard"></i> ${news.categoria}</div>
+            <h2 class="destaque-titulo">${news.titulo}</h2>
             <p class="destaque-resumo">${news.resumo}</p>
-            <a href="${news.linkArtigo}" class="btn-ver-artigo"><i class="fa-solid fa-book-open"></i> Ver artigo completo</a>
             <div class="destaque-info-grid">
               ${news.ficha ? news.ficha.map(item => `<div class="info-item"><span class="info-label">${item.label}</span><span class="info-valor">${item.valor}</span></div>`).join('') : ''}
             </div>
           </div>
-          <div class="destaque-media">
-            <iframe id="player-${news.id}" src="${limparEspacos(news.videoPrincipal)}" allowfullscreen></iframe>
-          </div>
-          
-          <div class="destaque-acoes" style="display: flex; gap: 10px; align-items: center;">
-              <button class="btn-acao" onclick="event.preventDefault(); window.shareNews('${news.titulo.replace(/'/g, "\\'")}', '${shareUrl}')">
-                <i class="fa-solid fa-share-nodes"></i> Compartilhar
-              </button>
 
-              <div class="menu-opcoes-container" tabindex="0" style="position: relative;">
-                <button class="btn-acao" style="background: #333; color: white;">
-                  <i class="fa-solid fa-star"></i> Útil
-                </button>
-                <div class="dropdown-conteudo header-dropdown" style="bottom: 100%; top: auto; margin-bottom: 10px;">
-                  <a href="#" onclick="event.preventDefault()"><i class="fa-solid fa-circle-play"></i> Curti vídeo</a>
-                  <a href="#" onclick="event.preventDefault()"><i class="fa-solid fa-newspaper"></i> Curti artigo</a>
-                  <a href="#" onclick="event.preventDefault()"><i class="fa-solid fa-user-pen"></i> Curti editor</a>
-                  <a href="#" onclick="event.preventDefault()"><i class="fa-solid fa-minus"></i> Ver menos</a>
-                  <a href="#" onclick="event.preventDefault()"><i class="fa-solid fa-plus"></i> Ver mais</a>
-                </div>
-              </div>
+          <div class="destaque-media">
+            <iframe id="player-${news.id}" src="${news.videoPrincipal}" allowfullscreen></iframe>
           </div>
 
           <div class="carrossel-temas">
-            <div class="carrossel-header"><span class="temas-label">Vídeos Relacionados</span></div>
+            <div class="carrossel-header"><span class="temas-label">Sugestões para você</span></div>
             <div class="temas-scroll-wrapper"><div class="temas-container">
                 ${news.relacionados ? news.relacionados.map(rel => `
-                  <div class="tema-card" onclick="window.pedirTroca('player-${news.id}', '${rel.idVid}', '${rel.titulo.replace(/'/g, "\\'")}', '${news.cor}')">
-                    <img src="${limparEspacos(rel.thumb)}" class="tema-thumb">
+                  <div class="tema-card">
+                    <img src="${rel.thumb}" class="tema-thumb">
                     <div class="tema-titulo">${rel.titulo}</div>
                   </div>`).join('') : ''}
             </div></div>
+          </div>
+
+          <div class="comentarios-trigger" onclick="window.abrirComentarios('${news.id}')">
+            <div class="trigger-left">
+               <i class="fa-regular fa-comment"></i>
+               <span>Discussão da comunidade...</span>
+            </div>
+            <div class="trigger-right"><i class="fa-solid fa-chevron-right"></i></div>
+          </div>
+
+          <div class="premium-action-bar">
+              <div class="action-item-group" tabindex="0">
+                <button class="btn-premium"><i class="fa-solid fa-hand-holding-heart"></i> Útil</button>
+                <div class="dropdown-premium">
+                  <a href="#"><i class="fa-solid fa-play"></i> Curti o vídeo</a>
+                  <a href="#"><i class="fa-solid fa-book"></i> Curti o artigo</a>
+                  <a href="#"><i class="fa-solid fa-pen-nib"></i> Curti o editor</a>
+                  <hr>
+                  <a href="#"><i class="fa-solid fa-eye-low-vision"></i> Ver menos disso</a>
+                  <a href="#"><i class="fa-solid fa-plus"></i> Ver mais disso</a>
+                </div>
+              </div>
+
+              <button class="btn-premium" onclick="window.shareNews('${news.titulo}', '${shareUrl}')">
+                <i class="fa-solid fa-share-nodes"></i> Compartilhar
+              </button>
+
+              <button class="btn-premium" onclick="alert('Estatísticas: ${viewsRandom} visualizações hoje')">
+                <i class="fa-solid fa-chart-line"></i>
+              </button>
+
+              <button class="btn-premium gold-btn" onclick="alert('Monetização: Você recebeu 5 Geeks Coins por ler este artigo!')">
+                <i class="fa-solid fa-sack-dollar"></i>
+              </button>
           </div>
         </article>
       `;
       }).join('');
 
-      // Mostrar ou esconder botão de carregar mais
-      if (noticiasExibidas < todasAsNoticias.length) {
-          btnPaginacao.style.display = 'block';
-      } else {
-          btnPaginacao.style.display = 'none';
-      }
+      btnPaginacao.style.display = noticiasExibidas < todasAsNoticias.length ? 'block' : 'none';
     }
 
-    // Lógica do botão carregar mais
     document.getElementById('btn-carregar-mais').onclick = () => {
         noticiasExibidas += 5;
         renderizarNoticias();
     };
 
     function carregarTudoRealTime() {
-      const q = collection(db, "noticias");
-      onSnapshot(q, (snapshot) => {
-        const noticiasFB = [];
-        snapshot.forEach((doc) => {
-          noticiasFB.push({ id: doc.id, ...doc.data() });
-        });
-        
-        // Combina feed local (se houver) com Firebase e ordena por data
-        todasAsNoticias = [...noticiasFB];
+      onSnapshot(collection(db, "noticias"), (snapshot) => {
+        todasAsNoticias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         todasAsNoticias.sort((a, b) => (b.data || 0) - (a.data || 0));
-
-        if(todasAsNoticias.length > 0) {
-            document.getElementById('novo-artigo-titulo').innerText = todasAsNoticias[0].titulo;
-        }
-
+        if(todasAsNoticias[0]) document.getElementById('novo-artigo-titulo').innerText = todasAsNoticias[0].titulo;
         renderizarNoticias();
       });
     }
@@ -207,38 +205,121 @@
   </script>
 
   <style>
-    /* Ajuste para o Menu Suspenso subir quando o botão está embaixo */
-    .destaque-acoes .dropdown-conteudo {
-        display: none;
-        position: absolute;
-        background: white;
-        min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 10;
+    /* DESIGN SYSTEM PROFISSIONAL */
+    .premium-action-bar {
+        display: flex;
+        padding: 12px 15px;
+        gap: 12px;
+        background: #fafafa;
+        border-top: 1px solid #eee;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .btn-premium {
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 8px 16px;
         border-radius: 8px;
-        overflow: hidden;
-    }
-    .menu-opcoes-container:focus-within .dropdown-conteudo {
-        display: block;
-    }
-    .dropdown-conteudo a {
-        color: black;
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-        font-size: 13px;
-        border-bottom: 1px solid #eee;
-    }
-    .dropdown-conteudo a:hover { background-color: #f1f1f1; }
-    .btn-acao {
+        font-size: 11px;
+        font-weight: 800;
         cursor: pointer;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-weight: bold;
         display: flex;
         align-items: center;
         gap: 8px;
+        transition: 0.3s;
+        color: #333;
+        text-transform: uppercase;
     }
+
+    .btn-premium:hover { background: #f0f0f0; border-color: #bbb; }
+    .gold-btn { color: #d4af37; border-color: #d4af37; background: #fffcf0; }
+
+    /* Dropdown */
+    .action-item-group { position: relative; }
+    .dropdown-premium {
+        display: none;
+        position: absolute;
+        bottom: 110%;
+        left: 0;
+        background: #fff;
+        min-width: 190px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        z-index: 100;
+        border: 1px solid #eee;
+    }
+    .action-item-group:focus-within .dropdown-premium { display: block; }
+    .dropdown-premium a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 15px;
+        color: #444;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .dropdown-premium a:hover { background: #f5f5f5; color: var(--primary); }
+    .dropdown-premium hr { border: 0; border-top: 1px solid #eee; margin: 0; }
+
+    /* Comentários Trigger */
+    .comentarios-trigger {
+        margin: 15px;
+        padding: 14px;
+        background: #f1f3f4;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .comentarios-trigger:hover { background: #e8eaed; }
+    .trigger-left { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: #5f6368; }
+
+    /* Modal Comentários Estilizado */
+    .modal-geek-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8);
+        backdrop-filter: blur(5px);
+        display: none;
+        z-index: 9999;
+        align-items: flex-end;
+    }
+    .modal-geek-overlay.active { display: flex; }
+    .modal-geek-content {
+        width: 100%;
+        max-width: 600px;
+        background: #fff;
+        height: 85vh;
+        margin: 0 auto;
+        border-radius: 24px 24px 0 0;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1);
+    }
+    .modal-geek-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .header-info { font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+    .modal-geek-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .modal-geek-input { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+    .input-wrapper { display: flex; background: #f1f3f4; border-radius: 30px; padding: 5px 15px; align-items: center; }
+    .input-wrapper input { flex: 1; border: none; background: transparent; padding: 12px; outline: none; font-size: 14px; }
+    
+    /* Estilo de Comentário Individual */
+    .geek-comment { display: flex; gap: 12px; margin-bottom: 25px; }
+    .geek-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
+    .geek-user-name { font-size: 12px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .badge-editor { background: #e63946; color: #fff; font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+    .geek-text { font-size: 14px; color: #3c4043; line-height: 1.4; }
+    .geek-footer { margin-top: 8px; display: flex; gap: 15px; font-size: 11px; font-weight: 700; color: #70757a; align-items: center; }
+    
+    .btn-load-more {
+        background: #333; color: #fff; border: none; padding: 15px 35px; border-radius: 50px;
+        font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 11px;
+    }
+
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   </style>
 </div>
