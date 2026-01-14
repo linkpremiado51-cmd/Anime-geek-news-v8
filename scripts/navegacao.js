@@ -3,172 +3,177 @@
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
 /**
+ * VERSÃO EDITADA: Abre a notícia garantindo que o motor de renderização da seção seja injetado corretamente
+ */
+async function abrirNoticiaUnica(item) {
+    if (!displayPrincipal) return;
+
+    try {
+        // 1. Carrega o CSS da seção de origem
+        gerenciarCSSDaSecao(item.origem || 'manchetes');
+
+        // 2. Prepara o layout com o botão de Voltar. 
+        // IMPORTANTE: O container agora usa o ID 'container-principal' para bater com o que a seção espera
+        displayPrincipal.innerHTML = `
+            <div class="foco-noticia-wrapper" style="animation: fadeIn 0.4s ease; max-width: var(--container-w); margin: 0 auto; padding: 20px;">
+                <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
+                    <button onclick="window.voltarParaLista()" class="btn-voltar-estilizado" style="background: none; border: 1px solid var(--text-main); color: var(--text-main); padding: 8px 18px; font-size: 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; text-transform: uppercase;">
+                        <i class="fa-solid fa-chevron-left" style="font-size: 14px;"></i> 
+                        <span>Voltar para ${item.origem ? item.origem.toUpperCase() : 'Início'}</span>
+                    </button>
+                </div>
+                <div id="container-principal">
+                    <p style="text-align:center; padding:50px; color:var(--text-muted);">Carregando conteúdo...</p>
+                </div>
+            </div>
+        `;
+
+        // 3. Busca o HTML da seção silenciosamente
+        const response = await fetch(`./secoes/${item.origem || 'manchetes'}.html`);
+        if (!response.ok) throw new Error("Falha ao carregar motor de renderização.");
+        const htmlBase = await response.text();
+
+        // 4. Extrai os scripts. Como sua seção usa type="module", precisamos forçar
+        // a função renderizarNoticias para o window.
+        const parser = new DOMParser();
+        const docSeçao = parser.parseFromString(htmlBase, 'text/html');
+        const scripts = docSeçao.querySelectorAll("script");
+
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement("script");
+            
+            // Se for módulo, mantemos, mas vamos injetar uma "ponte"
+            if (oldScript.type === 'module' || !oldScript.type) {
+                let conteudo = oldScript.textContent;
+                
+                // Técnica para expor a função de renderização ao window mesmo sendo module
+                if (conteudo.includes('function renderizarNoticias')) {
+                    conteudo += `\n window.renderizarNoticias = renderizarNoticias;`;
+                }
+                
+                newScript.type = 'module';
+                newScript.textContent = conteudo;
+            } else {
+                if (oldScript.src) newScript.src = oldScript.src;
+                newScript.textContent = oldScript.textContent;
+            }
+            document.head.appendChild(newScript);
+        });
+
+        // 5. Tentativa de renderização com verificação de segurança
+        let tentativas = 0;
+        const tentarRenderizar = () => {
+            if (typeof window.renderizarNoticias === 'function') {
+                // Limpa o aviso de carregamento
+                const container = document.getElementById('container-principal');
+                if (container) container.innerHTML = "";
+                
+                window.renderizarNoticias([item]);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (tentativas < 20) {
+                tentativas++;
+                setTimeout(tentarRenderizar, 150);
+            } else {
+                console.error("Motor de renderização não respondeu.");
+            }
+        };
+
+        tentarRenderizar();
+
+    } catch (err) {
+        console.error("Erro na ponte de navegação:", err);
+        displayPrincipal.innerHTML = `<div style="padding:100px; text-align:center;">Erro ao carregar conteúdo.</div>`;
+    }
+}
+
+/**
+ * NOVA FUNÇÃO: Vigia de URL para Links Compartilhados (?id=...)
+ */
+function verificarLinkCompartilhado() {
+    const params = new URLSearchParams(window.location.search);
+    const idNoticia = params.get('id');
+
+    if (idNoticia) {
+        displayPrincipal.innerHTML = '<div style="text-align: center; padding: 99px; color: var(--text-muted);">Sincronizando notícia...</div>';
+
+        const checkData = setInterval(() => {
+            if (window.noticiasFirebase && window.noticiasFirebase.length > 0) {
+                const item = window.noticiasFirebase.find(n => n.id === idNoticia);
+                if (item) {
+                    abrirNoticiaUnica(item);
+                } else {
+                    carregarSecao('manchetes');
+                }
+                clearInterval(checkData);
+            }
+        }, 100);
+        
+        setTimeout(() => clearInterval(checkData), 5000);
+    }
+}
+
+/**
+ * Função para limpar o ID da URL e restaurar a visualização da seção
+ */
+window.voltarParaLista = function() {
+    const url = new URL(window.location);
+    url.searchParams.delete('id');
+    window.history.pushState({}, '', url);
+
+    const tagAtiva = document.querySelector('.filter-tag.active');
+    const secaoDestino = tagAtiva ? tagAtiva.dataset.section : 'manchetes';
+    
+    carregarSecao(secaoDestino);
+};
+
+/**
  * Gerencia o carregamento de CSS específico para cada seção
  */
 function gerenciarCSSDaSecao(nome) {
     const linkAntigo = document.getElementById('css-secao-dinamica');
-    if (linkAntigo) {
-        linkAntigo.remove();
-    }
+    if (linkAntigo) linkAntigo.remove();
 
     const novoLink = document.createElement('link');
     novoLink.id = 'css-secao-dinamica';
     novoLink.rel = 'stylesheet';
     novoLink.href = `./estilos/secoes/${nome}.css`;
-
     document.head.appendChild(novoLink);
 }
 
 /**
- * SISTEMA DE CARREGAMENTO PREGUIÇOSO (LAZY LOADING)
- * Só ativa elementos quando entram na tela
- */
-function ativarObservadorDeScroll() {
-    const opcoes = {
-        root: null, // usa o viewport
-        rootMargin: '200px', // carrega 200px antes de aparecer para evitar "pulo" visual
-        threshold: 0.1
-    };
-
-    const observador = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const elemento = entry.target;
-                
-                // Se for um iframe (vídeo), coloca o SRC real que estava guardado no DATA-SRC
-                if (elemento.tagName === 'IFRAME' && elemento.dataset.src) {
-                    elemento.src = elemento.dataset.src;
-                    elemento.removeAttribute('data-src');
-                }
-                
-                // Se for imagem, faz o mesmo
-                if (elemento.tagName === 'IMG' && elemento.dataset.src) {
-                    elemento.src = elemento.dataset.src;
-                    elemento.removeAttribute('data-src');
-                }
-
-                // Para de observar este elemento já que ele já foi carregado
-                observer.unobserve(elemento);
-            }
-        });
-    }, opcoes);
-
-    // Seleciona todos os elementos marcados para carregamento preguiçoso
-    const alvos = document.querySelectorAll('iframe[data-src], img[data-src]');
-    alvos.forEach(alvo => observador.observe(alvo));
-}
-
-/**
- * Carrega dinamicamente o conteúdo HTML de uma seção específica com cache
+ * Carrega dinamicamente o conteúdo HTML de uma seção
  */
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
-    const CACHE_KEY = `cache_secao_${nome}`;
-    const cachedHTML = localStorage.getItem(CACHE_KEY);
-
-    if (cachedHTML) {
-        displayPrincipal.innerHTML = cachedHTML;
-        gerenciarCSSDaSecao(nome);
-        executarScriptsDaSecao(displayPrincipal);
-        ativarObservadorDeScroll(); // Ativa o observador para o conteúdo do cache
-        console.log(`⚡ [Cache] Seção '${nome}' carregada.`);
-    } else {
-        displayPrincipal.innerHTML = '<div style="text-align: center; padding: 99px; color: var(--text-muted);">Carregando conteúdo...</div>';
-    }
+    displayPrincipal.innerHTML = '<div style="text-align: center; padding: 99px; color: var(--text-muted);">Sincronizando feed...</div>';
     
     try {
-        const response = await fetch(`./secoes/${nome}.html`);
-        if (!response.ok) throw new Error("Erro 404: Arquivo não encontrado.");
-        
-        const novoHtml = await response.text();
+        gerenciarCSSDaSecao(nome);
 
-        if (novoHtml !== cachedHTML) {
-            localStorage.setItem(CACHE_KEY, novoHtml);
-            displayPrincipal.innerHTML = novoHtml;
-            gerenciarCSSDaSecao(nome);
-            executarScriptsDaSecao(displayPrincipal);
-            ativarObservadorDeScroll(); // Ativa o observador para o conteúdo novo
-            console.log(`📡 [Rede] Seção '${nome}' atualizada.`);
-        }
+        const response = await fetch(`./secoes/${nome}.html`);
+        if (!response.ok) throw new Error("Arquivo não encontrado.");
+        
+        const html = await response.text();
+        displayPrincipal.innerHTML = html;
+
+        const scripts = displayPrincipal.querySelectorAll("script");
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement("script");
+            newScript.type = oldScript.type || "text/javascript";
+            if (oldScript.src) newScript.src = oldScript.src;
+            newScript.text = oldScript.text;
+            document.body.appendChild(newScript);
+        });
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (err) {
-        if (!cachedHTML) {
-            displayPrincipal.innerHTML = `<div style="text-align: center; padding: 100px; color: var(--accent-news);">Erro: ${err.message}</div>`;
-        }
+        displayPrincipal.innerHTML = `<div style="text-align:center; padding:100px;">Erro: ${nome} não carregado.</div>`;
     }
 }
 
-/**
- * Auxiliar para rodar os scripts dos arquivos carregados
- */
-function executarScriptsDaSecao(container) {
-    const scripts = container.querySelectorAll("script");
-    scripts.forEach(oldScript => {
-        const newScript = document.createElement("script");
-        newScript.type = oldScript.type || "text/javascript";
-        if (oldScript.src) {
-            newScript.src = oldScript.src;
-        } else {
-            newScript.text = oldScript.text;
-        }
-        document.body.appendChild(newScript);
-        setTimeout(() => newScript.remove(), 500);
-    });
-}
-
-/**
- * LÓGICA DO MODAL GLOBAL
- */
-window.abrirModalNoticia = function(item) {
-    const modal = document.getElementById('modal-noticia-global');
-    if (!modal) return;
-
-    document.getElementById('m-titulo').innerText = item.titulo || "";
-    document.getElementById('m-categoria').innerText = item.categoria || "GEEK";
-    document.getElementById('m-categoria').style.color = item.cor || "var(--primary)";
-    document.getElementById('m-resumo').innerText = item.resumo || "";
-    
-    const iframe = document.getElementById('m-video');
-    // No modal carregamos direto pois o usuário explicitamente clicou para ver
-    iframe.src = item.videoPrincipal ? item.videoPrincipal.trim() : "";
-    document.getElementById('m-link').href = item.linkArtigo || "#";
-
-    const fichaContainer = document.getElementById('m-ficha');
-    if (item.ficha && Array.isArray(item.ficha)) {
-        fichaContainer.innerHTML = item.ficha.map(f => `
-            <div class="info-item">
-                <span style="display:block; font-size:10px; text-transform:uppercase; font-weight:700; color:#888;">${f.label}</span>
-                <span style="font-size:13px; font-weight:600;">${f.valor}</span>
-            </div>
-        `).join('');
-        fichaContainer.style.display = 'grid';
-    } else {
-        fichaContainer.style.display = 'none';
-    }
-
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-};
-
-window.fecharModalGlobal = function() {
-    const modal = document.getElementById('modal-noticia-global');
-    if (modal) {
-        modal.style.display = 'none';
-        document.getElementById('m-video').src = ""; 
-        document.body.style.overflow = 'auto';
-
-        const url = new URL(window.location);
-        if (url.searchParams.has('id')) {
-            url.searchParams.delete('id');
-            window.history.pushState({}, '', url);
-        }
-    }
-};
-
-// Eventos de clique nos filtros
+// Eventos de clique nas tags
 document.querySelectorAll('.filter-tag').forEach(tag => {
     tag.addEventListener('click', () => {
         document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
@@ -183,10 +188,13 @@ window.toggleMobileMenu = function() {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
-    carregarSecao('manchetes');
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('id')) {
+        verificarLinkCompartilhado();
+    } else {
+        carregarSecao('manchetes');
+    }
 });
 
 window.carregarSecao = carregarSecao;
-// Exporta o observador para ser usado por outros scripts se necessário
-window.ativarObservadorDeScroll = ativarObservadorDeScroll;
-
+window.abrirNoticiaUnica = abrirNoticiaUnica;
