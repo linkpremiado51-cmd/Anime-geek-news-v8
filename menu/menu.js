@@ -2,7 +2,8 @@
 
 import {
     getAuth,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 export async function inicializarMegaMenu() {
@@ -118,7 +119,11 @@ export async function inicializarMegaMenu() {
     const areaLogado = overlay.querySelector('[data-auth="logged-in"]');
     const areaDeslogado = overlay.querySelector('[data-auth="logged-out"]');
     const userNameEl = document.getElementById('userName');
+    const btnLogout = document.getElementById('btnLogoutMenu');
 
+    /* =========================================
+       ESTADO DE AUTENTICAÇÃO
+    ========================================= */
     onAuthStateChanged(auth, (user) => {
         if (user) {
             // USUÁRIO LOGADO
@@ -144,4 +149,24 @@ export async function inicializarMegaMenu() {
             }
         }
     });
+
+    /* =========================================
+       🚪 LOGOUT
+    ========================================= */
+    if (btnLogout) {
+        btnLogout.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+
+                fecharMegaMenu();
+
+                // opcional: redirecionar
+                // window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error('Erro ao sair:', error);
+                alert('Erro ao sair da conta.');
+            }
+        });
+    }
 }
