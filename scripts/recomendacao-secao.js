@@ -37,7 +37,7 @@ const CATALOGO = [
   },
   {
     sessao: "ANÁLISES",
-    id: 'cat_analises',
+    id: 'analises',
     cor: "#8A2BE2",
     itens: [
       { id: 'opiniao', label: 'Opinião' },
@@ -51,7 +51,7 @@ const CATALOGO = [
   },
   {
     sessao: "ENTREVISTAS",
-    id: 'cat_entrevistas',
+    id: 'entrevistas',
     cor: "#20B2AA",
     itens: [
       { id: 'devs', label: 'Desenvolvedores' },
@@ -64,7 +64,7 @@ const CATALOGO = [
   },
   {
     sessao: "LANÇAMENTOS",
-    id: 'cat_lancamentos',
+    id: 'lancamentos',
     cor: "#32CD32",
     itens: [
       { id: 'lanc_jogos', label: 'Jogos' },
@@ -79,7 +79,7 @@ const CATALOGO = [
   },
   {
     sessao: "REVIEWS",
-    id: 'cat_reviews',
+    id: 'reviews',
     cor: "#FFD700",
     itens: [
       { id: 'rev_jogos', label: 'Jogos' },
@@ -94,7 +94,7 @@ const CATALOGO = [
   },
   {
     sessao: "TRAILERS",
-    id: 'cat_trailers',
+    id: 'trailers',
     cor: "#DC143C",
     itens: [
       { id: 'tr_jogos', label: 'Jogos' },
@@ -108,7 +108,7 @@ const CATALOGO = [
   },
   {
     sessao: "STREAMING",
-    id: 'cat_streaming',
+    id: 'streaming',
     cor: "#00BFFF",
     itens: [
       { id: 'st_netflix', label: 'Netflix' },
@@ -123,7 +123,7 @@ const CATALOGO = [
   },
   {
     sessao: "PODCAST",
-    id: 'cat_podcast',
+    id: 'podcast',
     cor: "#9370DB",
     itens: [
       { id: 'pod_recentes', label: 'Episódios Recentes' },
@@ -137,7 +137,7 @@ const CATALOGO = [
   },
   {
     sessao: "FUTEBOL",
-    id: 'cat_futebol',
+    id: 'futebol',
     cor: "#2E8B57",
     itens: [
       { id: 'fut_news', label: 'Notícias' },
@@ -151,7 +151,7 @@ const CATALOGO = [
   },
   {
     sessao: "TECNOLOGIA",
-    id: 'cat_tecnologia',
+    id: 'tecnologia',
     cor: "#4682B4",
     itens: [
       { id: 'tech_smart', label: 'Smartphones' },
@@ -166,7 +166,7 @@ const CATALOGO = [
   },
   {
     sessao: "COSPLAY",
-    id: 'cat_cosplay',
+    id: 'cosplay',
     cor: "#FF69B4",
     itens: [
       { id: 'cosp_dest', label: 'Destaques' },
@@ -179,7 +179,7 @@ const CATALOGO = [
   },
   {
     sessao: "EVENTOS",
-    id: 'cat_eventos',
+    id: 'eventos',
     cor: "#FF8C00",
     itens: [
       { id: 'evt_feiras', label: 'Feiras Geek' },
@@ -192,7 +192,7 @@ const CATALOGO = [
   },
   {
     sessao: "ESPORTS",
-    id: 'cat_esports',
+    id: 'esports',
     cor: "#00008B",
     itens: [
       { id: 'esp_camp', label: 'Campeonatos' },
@@ -205,7 +205,7 @@ const CATALOGO = [
   },
   {
     sessao: "CINEMA",
-    id: 'cat_cinema',
+    id: 'cinema',
     cor: "#8B0000",
     itens: [
       { id: 'cine_news', label: 'Notícias' },
@@ -218,7 +218,7 @@ const CATALOGO = [
   },
   {
     sessao: "TV & SÉRIES",
-    id: 'cat_tv',
+    id: 'tv',
     cor: "#483D8B",
     itens: [
       { id: 'tv_news', label: 'Notícias' },
@@ -231,7 +231,7 @@ const CATALOGO = [
   },
   {
     sessao: "COMUNIDADE",
-    id: 'cat_comunidade',
+    id: 'comunidade',
     cor: "#2F4F4F",
     itens: [
       { id: 'com_op', label: 'Opinião do Leitor' },
@@ -243,7 +243,7 @@ const CATALOGO = [
   },
   {
     sessao: "RANKING",
-    id: 'cat_ranking',
+    id: 'ranking',
     cor: "#B8860B",
     itens: [
       { id: 'rank_jogos', label: 'Melhores Jogos' },
