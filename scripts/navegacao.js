@@ -181,12 +181,6 @@ document.querySelectorAll('.filter-tag').forEach(tag => {
         carregarSecao(tag.dataset.section);
     });
 });
-
-window.toggleMobileMenu = function() {
-    const menu = document.getElementById('mobileMenu');
-    if (menu) menu.classList.toggle('active');
-};
-
 // Inicialização
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
