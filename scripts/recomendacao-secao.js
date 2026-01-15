@@ -293,23 +293,54 @@ const styles = `
     scrollbar-width: thin;
   }
 
-  /* --- HEADER: PESQUISA E MODOS --- */
+  /* --- HEADER: PESQUISA E MODOS (ESTÉTICA HIGH-END) --- */
   .ag-drawer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
     gap: 20px;
     flex-wrap: wrap;
     max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
+    
+    /* Fixação no topo com efeito vidro */
+    position: sticky;
+    top: -30px; /* Alinhado ao topo do container */
+    z-index: 100;
+    margin: -30px auto 30px auto; 
+    padding: 25px 0;
+    
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: background 0.3s ease;
+  }
+
+  body.dark-mode .ag-drawer-header {
+    background: rgba(20, 20, 20, 0.85);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Efeito de degradê inferior para suavizar a rolagem dos itens */
+  .ag-drawer-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
+    pointer-events: none;
+  }
+  
+  body.dark-mode .ag-drawer-header::after {
+    background: linear-gradient(to bottom, rgba(20, 20, 20, 0.9), transparent);
   }
 
   .ag-search-wrapper {
     position: relative;
     flex: 1;
-    min-width: 300px;
+    min-width: 280px;
   }
 
   .ag-search-icon-svg {
@@ -325,60 +356,61 @@ const styles = `
 
   .ag-search-input {
     width: 100%;
-    padding: 12px 15px 12px 45px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: #f4f4f4;
+    padding: 11px 15px 11px 45px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.04);
     font-size: 14px;
     font-weight: 500;
     outline: none;
-    transition: 0.3s;
+    transition: all 0.3s ease;
   }
 
   body.dark-mode .ag-search-input {
-    background: #1e1e1e;
-    border-color: #333;
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
     color: #fff;
   }
   
   .ag-search-input:focus {
     background: #fff;
     border-color: var(--primary-color, #e50914);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
   }
   body.dark-mode .ag-search-input:focus { background: #252525; }
 
   /* --- BOTÕES DE MODO --- */
   .ag-mode-group {
-    background: #f0f0f0;
+    background: rgba(0,0,0,0.05);
     padding: 4px;
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
   }
-  body.dark-mode .ag-mode-group { background: #222; }
+  body.dark-mode .ag-mode-group { background: rgba(255,255,255,0.08); }
 
   .ag-mode-btn {
     padding: 8px 16px;
     border: none;
     background: transparent;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #777;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #888;
     cursor: pointer;
     text-transform: uppercase;
-    transition: 0.2s;
+    transition: all 0.2s;
   }
 
   .ag-mode-btn.active {
     background: #fff;
     color: #000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   }
   body.dark-mode .ag-mode-btn.active {
-    background: #444;
+    background: #333;
     color: #fff;
   }
+
 
   /* --- SESSÕES (CABEÇALHOS CLICÁVEIS) --- */
   .ag-section-block {
