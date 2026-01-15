@@ -1,234 +1,422 @@
-<style>
-    :root {
-        --enterprise-blue: #007AFF;
-        --dark-bg: #0f172a;
-        --card-bg: #1e293b;
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --glass: rgba(255, 255, 255, 0.05);
-    }
+/**
+ * AniGeekNews – Enterprise Section Manager
+ * * @version 2.0.0
+ * @description Sistema inteligente de gerenciamento de seções com UI executiva.
+ * @features Persistência segura, UI reativa, Controle de limites, Busca em tempo real.
+ */
 
-    /* Scroller de Filtros */
-    #filterScroller {
-        display: flex;
-        gap: 10px;
-        padding: 15px;
-        overflow-x: auto;
-        background: var(--dark-bg);
-        align-items: center;
-        scrollbar-width: none;
-    }
+(function () {
+    'use strict';
 
-    .filter-tag {
-        white-space: nowrap;
-        padding: 8px 20px;
-        border-radius: 12px;
-        background: var(--glass);
-        color: var(--text-secondary);
-        border: 1px solid rgba(255,255,255,0.1);
-        cursor: pointer;
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        font-family: 'Inter', sans-serif;
-        font-weight: 500;
-    }
+    // Configurações do Sistema
+    const CONFIG = {
+        maxSections: 12,
+        storageKey: 'agn_enterprise_sections_v2',
+        dom: {
+            containerId: 'filterScroller',
+            modalId: 'agn-enterprise-modal'
+        }
+    };
 
-    .filter-tag:hover {
-        background: rgba(255,255,255,0.1);
-        transform: translateY(-2px);
-    }
+    // Dados Mestre (Base de Dados)
+    const MASTER_DATA = [
+        { id: 'manchetes', nome: 'Manchetes', category: 'Geral' },
+        { id: 'analises', nome: 'Análises', category: 'Editorial' },
+        { id: 'entrevistas', nome: 'Entrevistas', category: 'Editorial' },
+        { id: 'lancamentos', nome: 'Lançamentos', category: 'Novidades' },
+        { id: 'podcast', nome: 'Podcast', category: 'Mídia' },
+        { id: 'futebol', nome: 'Futebol', category: 'Esportes' },
+        { id: 'tecnologia', nome: 'Tecnologia', category: 'Tech' },
+        { id: 'reviews', nome: 'Reviews', category: 'Editorial' },
+        { id: 'trailers', nome: 'Trailers', category: 'Mídia' },
+        { id: 'streaming', nome: 'Streaming', category: 'Serviços' },
+        { id: 'cosplay', nome: 'Cosplay', category: 'Comunidade' },
+        { id: 'eventos', nome: 'Eventos', category: 'Comunidade' },
+        { id: 'esports', nome: 'eSports', category: 'Esportes' },
+        { id: 'cinema', nome: 'Cinema', category: 'Entretenimento' },
+        { id: 'tv', nome: 'TV & Séries', category: 'Entretenimento' },
+        { id: 'comunidade', nome: 'Comunidade', category: 'Social' },
+        { id: 'ranking', nome: 'Ranking', category: 'Dados' }
+    ];
 
-    .filter-tag.active {
-        background: var(--enterprise-blue);
-        color: white;
-        border-color: var(--enterprise-blue);
-        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-    }
+    /**
+     * Injeta estilos CSS modernos dinamicamente
+     */
+    function injectStyles() {
+        const styleId = 'agn-enterprise-styles';
+        if (document.getElementById(styleId)) return;
 
-    /* Botão Personalizar Especial */
-    .config-tag {
-        background: #2dd4bf !important;
-        color: #0f172a !important;
-        font-weight: 700 !important;
-        margin-left: auto;
-    }
+        const css = `
+            :root {
+                --agn-primary: #2563eb;
+                --agn-primary-dark: #1e40af;
+                --agn-bg: #f8fafc;
+                --agn-surface: #ffffff;
+                --agn-text: #1e293b;
+                --agn-text-muted: #64748b;
+                --agn-border: #e2e8f0;
+                --agn-radius: 8px;
+                --agn-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
 
-    /* Modal Enterprise */
-    .modal-overlay {
-        position: fixed; inset: 0;
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(8px);
-        display: flex; align-items: center; justify-content: center;
-        z-index: 10000;
-        animation: fadeIn 0.2s ease;
-    }
+            /* --- Barra de Filtros --- */
+            #filterScroller {
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+                padding: 12px 0;
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE */
+                align-items: center;
+            }
+            #filterScroller::-webkit-scrollbar { display: none; }
+            
+            .agn-tag {
+                background: var(--agn-surface);
+                border: 1px solid var(--agn-border);
+                color: var(--agn-text-muted);
+                padding: 8px 16px;
+                border-radius: 50px;
+                font-size: 14px;
+                font-weight: 500;
+                white-space: nowrap;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
+            .agn-tag:hover { border-color: var(--agn-primary); color: var(--agn-primary); }
+            .agn-tag.active {
+                background: var(--agn-primary);
+                color: white;
+                border-color: var(--agn-primary);
+                box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+            }
+            .agn-config-btn {
+                width: 36px; height: 36px;
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                border: 1px dashed var(--agn-border);
+                color: var(--agn-text-muted);
+                flex-shrink: 0;
+                background: transparent;
+                cursor: pointer;
+            }
+            .agn-config-btn:hover { background: var(--agn-border); color: var(--agn-text); }
 
-    .modal-content {
-        background: var(--card-bg);
-        width: 90%; max-width: 550px;
-        max-height: 85vh;
-        border-radius: 24px;
-        border: 1px solid rgba(255,255,255,0.1);
-        display: flex; flex-direction: column;
-        color: white;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-    }
+            /* --- Modal Executivo --- */
+            .agn-modal-overlay {
+                position: fixed; inset: 0;
+                background: rgba(15, 23, 42, 0.6);
+                backdrop-filter: blur(4px);
+                z-index: 9999;
+                display: flex; align-items: center; justify-content: center;
+                opacity: 0; animation: agnFadeIn 0.2s forwards;
+            }
+            
+            .agn-modal-card {
+                background: var(--agn-surface);
+                width: 100%; max-width: 500px;
+                max-height: 85vh;
+                border-radius: 12px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                display: flex; flex-direction: column;
+                overflow: hidden;
+                transform: scale(0.95); animation: agnScaleUp 0.2s forwards;
+                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            }
 
-    .modal-header { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    
-    .modal-input {
-        width: 100%; padding: 12px;
-        background: rgba(0,0,0,0.2);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 12px; color: white; margin-top: 15px;
-    }
+            .agn-modal-header {
+                padding: 20px;
+                border-bottom: 1px solid var(--agn-border);
+                display: flex; justify-content: space-between; align-items: center;
+            }
+            .agn-modal-title { font-size: 18px; font-weight: 700; color: var(--agn-text); margin: 0; }
+            .agn-limit-badge { font-size: 12px; padding: 4px 8px; background: var(--agn-bg); border-radius: 4px; color: var(--agn-text-muted); }
+            .agn-limit-badge.full { color: #dc2626; background: #fef2f2; }
 
-    .section-grid { 
-        padding: 20px; overflow-y: auto; 
-        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    }
+            .agn-search-wrap { padding: 16px 20px 0; }
+            .agn-input {
+                width: 100%; padding: 12px;
+                border: 1px solid var(--agn-border);
+                border-radius: 8px;
+                font-size: 14px;
+                outline: none;
+                transition: border 0.2s;
+                box-sizing: border-box; 
+            }
+            .agn-input:focus { border-color: var(--agn-primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
 
-    .section-item {
-        padding: 15px; border-radius: 14px;
-        background: var(--glass);
-        border: 1px solid transparent;
-        cursor: pointer; transition: 0.2s;
-        display: flex; justify-content: space-between; align-items: center;
-    }
+            .agn-list {
+                flex: 1; overflow-y: auto;
+                padding: 10px 20px;
+            }
+            .agn-list-item {
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--agn-bg);
+            }
+            .agn-item-label { font-size: 15px; font-weight: 500; color: var(--agn-text); }
+            .agn-item-cat { font-size: 12px; color: var(--agn-text-muted); display: block; margin-top: 2px; }
 
-    .section-item.selected {
-        border-color: var(--enterprise-blue);
-        background: rgba(0, 122, 255, 0.1);
-    }
+            /* Switch Toggle Style */
+            .agn-switch {
+                position: relative; display: inline-block; width: 44px; height: 24px;
+            }
+            .agn-switch input { opacity: 0; width: 0; height: 0; }
+            .agn-slider {
+                position: absolute; cursor: pointer; inset: 0;
+                background-color: #cbd5e1;
+                transition: .3s; border-radius: 34px;
+            }
+            .agn-slider:before {
+                position: absolute; content: "";
+                height: 18px; width: 18px;
+                left: 3px; bottom: 3px;
+                background-color: white;
+                transition: .3s; border-radius: 50%;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            }
+            input:checked + .agn-slider { background-color: var(--agn-primary); }
+            input:checked + .agn-slider:before { transform: translateX(20px); }
+            input:disabled + .agn-slider { opacity: 0.5; cursor: not-allowed; }
 
-    .modal-footer { padding: 20px; display: flex; gap: 10px; justify-content: flex-end; }
-    
-    .btn-p { background: var(--enterprise-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
-    .btn-s { background: transparent; color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+            .agn-modal-footer {
+                padding: 16px 20px;
+                background: var(--agn-bg);
+                border-top: 1px solid var(--agn-border);
+                display: flex; justify-content: flex-end; gap: 10px;
+            }
+            .agn-btn {
+                padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none;
+            }
+            .agn-btn-ghost { background: transparent; color: var(--agn-text-muted); }
+            .agn-btn-ghost:hover { background: rgba(0,0,0,0.05); color: var(--agn-text); }
+            .agn-btn-primary { background: var(--agn-primary); color: white; }
+            .agn-btn-primary:hover { background: var(--agn-primary-dark); }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-</style>
-
-<script>
-class AniGeekEngine {
-    constructor() {
-        this.MAX = 12;
-        this.KEY = 'anigeek_v2_order';
-        this.allSections = [
-            { id: 'manchetes', nome: 'Manchetes' }, { id: 'analises', nome: 'Análises' },
-            { id: 'entrevistas', nome: 'Entrevistas' }, { id: 'lancamentos', nome: 'Lançamentos' },
-            { id: 'podcast', nome: 'Podcast' }, { id: 'futebol', nome: 'Futebol' },
-            { id: 'tecnologia', nome: 'Tecnologia' }, { id: 'reviews', nome: 'Reviews' },
-            { id: 'trailers', nome: 'Trailers' }, { id: 'streaming', nome: 'Streaming' },
-            { id: 'cosplay', nome: 'Cosplay' }, { id: 'eventos', nome: 'Eventos' },
-            { id: 'esports', nome: 'eSports' }, { id: 'cinema', nome: 'Cinema' },
-            { id: 'tv', nome: 'TV & Séries' }, { id: 'comunidade', nome: 'Comunidade' }
-        ];
-        this.order = this.load();
-        this.init();
-    }
-
-    load() {
-        const saved = localStorage.getItem(this.KEY);
-        return saved ? JSON.parse(saved) : this.allSections.slice(0, 6).map(s => s.id);
-    }
-
-    save() {
-        localStorage.setItem(this.KEY, JSON.stringify(this.order));
-        this.renderBar();
-    }
-
-    renderBar() {
-        const bar = document.getElementById('filterScroller');
-        if (!bar) return;
-        bar.innerHTML = '';
-
-        this.order.forEach(id => {
-            const sec = this.allSections.find(s => s.id === id);
-            if (!sec) return;
-            const btn = document.createElement('button');
-            btn.className = 'filter-tag';
-            btn.textContent = sec.nome;
-            btn.onclick = (e) => this.activate(id, e.target);
-            bar.appendChild(btn);
-        });
-
-        const cfg = document.createElement('button');
-        cfg.className = 'filter-tag config-tag';
-        cfg.innerHTML = '⚙ Configurar';
-        cfg.onclick = () => this.openModal();
-        bar.appendChild(cfg);
-
-        // Ativa o primeiro por padrão
-        const first = bar.querySelector('.filter-tag');
-        if (first) first.click();
-    }
-
-    activate(id, el) {
-        document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        console.log(`Carregando seção: ${id}`);
-        window.carregarSecao?.(id);
-    }
-
-    openModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.id = 'modal-engine';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 style="margin:0">Personalizar Feed</h2>
-                    <p style="color:var(--text-secondary); font-size:14px; margin:5px 0 0">Selecione suas seções favoritas (Máx ${this.MAX})</p>
-                    <input type="text" id="m-search" class="modal-input" placeholder="Buscar categoria...">
-                </div>
-                <div class="section-grid" id="m-grid"></div>
-                <div class="modal-footer">
-                    <button class="btn-s" onclick="document.getElementById('modal-engine').remove()">Cancelar</button>
-                    <button class="btn-p" id="m-save">Salvar Preferências</button>
-                </div>
-            </div>
+            @keyframes agnFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes agnScaleUp { from { transform: scale(0.95); } to { transform: scale(1); } }
         `;
-        document.body.appendChild(modal);
-        
-        document.getElementById('m-save').onclick = () => {
-            this.save();
-            modal.remove();
-        };
 
-        document.getElementById('m-search').oninput = (e) => this.renderGrid(e.target.value);
-        this.renderGrid();
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = css;
+        document.head.appendChild(style);
     }
 
-    renderGrid(query = '') {
-        const grid = document.getElementById('m-grid');
-        grid.innerHTML = '';
-        const search = query.toLowerCase();
+    /**
+     * Classe Gerenciadora (Core Logic)
+     */
+    class SectionManager {
+        constructor() {
+            this.currentOrder = [];
+            this.tempOrder = []; // Usado dentro do modal antes de salvar
+            this.init();
+        }
 
-        this.allSections.filter(s => s.nome.toLowerCase().includes(search)).forEach(sec => {
-            const isSel = this.order.includes(sec.id);
-            const item = document.createElement('div');
-            item.className = `section-item ${isSel ? 'selected' : ''}`;
-            item.innerHTML = `
-                <span>${sec.nome}</span>
-                <span style="font-size:12px">${isSel ? '●' : '○'}</span>
-            `;
-            item.onclick = () => {
-                if (isSel) {
-                    this.order = this.order.filter(i => i !== sec.id);
-                } else if (this.order.length < this.MAX) {
-                    this.order.push(sec.id);
+        init() {
+            injectStyles();
+            this.loadOrder();
+            
+            // Aguarda o DOM estar pronto caso o script rode no head
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => this.renderBar());
+            } else {
+                this.renderBar();
+            }
+        }
+
+        /**
+         * Carrega e valida a ordem do LocalStorage
+         */
+        loadOrder() {
+            try {
+                const stored = localStorage.getItem(CONFIG.storageKey);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        this.currentOrder = parsed;
+                        return;
+                    }
                 }
-                this.renderGrid(query);
+            } catch (e) {
+                console.warn('AniGeek: Erro ao ler storage', e);
+            }
+            // Fallback padrão
+            this.currentOrder = MASTER_DATA.slice(0, 7).map(s => s.id);
+        }
+
+        saveOrder(newOrder) {
+            this.currentOrder = newOrder;
+            localStorage.setItem(CONFIG.storageKey, JSON.stringify(newOrder));
+            this.renderBar();
+        }
+
+        /**
+         * Renderiza a barra horizontal principal
+         */
+        renderBar() {
+            const wrapper = document.getElementById(CONFIG.dom.containerId);
+            if (!wrapper) return;
+
+            wrapper.innerHTML = '';
+            const frag = document.createDocumentFragment();
+
+            this.currentOrder.forEach((id, index) => {
+                const section = MASTER_DATA.find(s => s.id === id);
+                if (!section) return;
+
+                const btn = document.createElement('button');
+                btn.className = `agn-tag ${index === 0 ? 'active' : ''}`;
+                btn.textContent = section.nome;
+                btn.onclick = (e) => this.handleSectionClick(e, section.id);
+                frag.appendChild(btn);
+            });
+
+            // Botão de Configuração
+            const configBtn = document.createElement('button');
+            configBtn.className = 'agn-config-btn';
+            configBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="M2 12h2"></path><path d="M22 12h-2"></path></svg>';
+            configBtn.title = "Personalizar Seções";
+            configBtn.onclick = () => this.openModal();
+            frag.appendChild(configBtn);
+
+            wrapper.appendChild(frag);
+
+            // Trigger inicial
+            if (this.currentOrder.length > 0) {
+                this.triggerExternalLoad(this.currentOrder[0]);
+            }
+        }
+
+        handleSectionClick(e, id) {
+            document.querySelectorAll('.agn-tag').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            this.triggerExternalLoad(id);
+        }
+
+        triggerExternalLoad(id) {
+            // Integração segura com o sistema legado
+            if (window.carregarSecao && typeof window.carregarSecao === 'function') {
+                window.carregarSecao(id);
+            }
+        }
+
+        /**
+         * Lógica do Modal
+         */
+        openModal() {
+            if (document.getElementById(CONFIG.dom.modalId)) return;
+
+            // Clona o estado atual para edição temporária
+            this.tempOrder = [...this.currentOrder];
+
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = CONFIG.dom.modalId;
+            modalOverlay.className = 'agn-modal-overlay';
+            
+            modalOverlay.innerHTML = `
+                <div class="agn-modal-card">
+                    <div class="agn-modal-header">
+                        <h3 class="agn-modal-title">Personalizar Feed</h3>
+                        <span id="agn-counter" class="agn-limit-badge">
+                            ${this.tempOrder.length}/${CONFIG.maxSections} Selecionados
+                        </span>
+                    </div>
+                    <div class="agn-search-wrap">
+                        <input type="text" id="agn-search" class="agn-input" placeholder="Buscar seções (ex: tecnologia, séries)...">
+                    </div>
+                    <div class="agn-list" id="agn-list-container"></div>
+                    <div class="agn-modal-footer">
+                        <button class="agn-btn agn-btn-ghost" id="agn-btn-cancel">Cancelar</button>
+                        <button class="agn-btn agn-btn-primary" id="agn-btn-save">Salvar Alterações</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modalOverlay);
+
+            // Bind Events
+            document.getElementById('agn-btn-cancel').onclick = () => this.closeModal();
+            document.getElementById('agn-btn-save').onclick = () => {
+                this.saveOrder(this.tempOrder);
+                this.closeModal();
             };
-            grid.appendChild(item);
-        });
+            
+            const searchInput = document.getElementById('agn-search');
+            searchInput.oninput = (e) => this.renderModalList(e.target.value);
+            
+            // Focar no input
+            searchInput.focus();
+
+            this.renderModalList();
+        }
+
+        renderModalList(filterText = '') {
+            const container = document.getElementById('agn-list-container');
+            const counter = document.getElementById('agn-counter');
+            if (!container) return;
+
+            // Atualiza contador
+            const count = this.tempOrder.length;
+            counter.textContent = `${count}/${CONFIG.maxSections} Selecionados`;
+            counter.classList.toggle('full', count >= CONFIG.maxSections);
+
+            container.innerHTML = '';
+            const search = filterText.toLowerCase();
+
+            MASTER_DATA.forEach(sec => {
+                if (!sec.nome.toLowerCase().includes(search) && !sec.category.toLowerCase().includes(search)) return;
+
+                const isActive = this.tempOrder.includes(sec.id);
+                const isLimitReached = count >= CONFIG.maxSections;
+                const isDisabled = !isActive && isLimitReached;
+
+                const row = document.createElement('div');
+                row.className = 'agn-list-item';
+                
+                // Toggle Switch HTML
+                const switchHtml = `
+                    <label class="agn-switch">
+                        <input type="checkbox" 
+                            ${isActive ? 'checked' : ''} 
+                            ${isDisabled ? 'disabled' : ''}>
+                        <span class="agn-slider"></span>
+                    </label>
+                `;
+
+                row.innerHTML = `
+                    <div>
+                        <div class="agn-item-label" style="opacity: ${isDisabled ? 0.5 : 1}">${sec.nome}</div>
+                        <span class="agn-item-cat">${sec.category}</span>
+                    </div>
+                    ${switchHtml}
+                `;
+
+                // Evento do Toggle
+                const checkbox = row.querySelector('input');
+                checkbox.onchange = () => {
+                    if (checkbox.checked) {
+                        if (this.tempOrder.length < CONFIG.maxSections) {
+                            this.tempOrder.push(sec.id);
+                        }
+                    } else {
+                        this.tempOrder = this.tempOrder.filter(id => id !== sec.id);
+                    }
+                    this.renderModalList(filterText); // Re-render para atualizar estados disabled
+                };
+
+                container.appendChild(row);
+            });
+        }
+
+        closeModal() {
+            const el = document.getElementById(CONFIG.dom.modalId);
+            if (el) el.remove();
+        }
     }
 
-    init() {
-        window.addEventListener('load', () => this.renderBar());
-    }
-}
+    // Inicialização
+    new SectionManager();
 
-// Inicializa o Sistema
-const AniGeek = new AniGeekEngine();
-</script>
+})();
