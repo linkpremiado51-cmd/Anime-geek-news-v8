@@ -1,227 +1,201 @@
-/**
- AniGeekNews – Enterprise Adaptive Section System
- • Modo Fixo vs Dinâmico
- • Prioridade por comportamento
- • Cabeçalho Netflix
- • Busca, limite, persistência
-*/
+/* ======================================================
+   AniGeekNews – Enterprise Section System v3
+   • Sliding panel
+   • Modo Fixo / Dinâmico
+   • Aprendizado por uso
+   • Limite de 12 abas
+====================================================== */
 
 (function(){
 
-const MAX_SECOES = 12;
-const ORDER_KEY = 'anigeek_secoes_order';
-const MODE_KEY  = 'anigeek_section_mode';
-const STATS_KEY = 'anigeek_section_stats';
+const MAX = 12;
+const KEY_ORDER = 'ag_sections_order';
+const KEY_MODE  = 'ag_sections_mode';
+const KEY_STATS = 'ag_sections_stats';
 
-/* ================= SEÇÕES ================= */
-
+/* ===========================
+   TODAS AS SEÇÕES
+=========================== */
 const SECOES = [
- {id:'manchetes', nome:'Manchetes'},
- {id:'analises', nome:'Análises'},
- {id:'entrevistas', nome:'Entrevistas'},
- {id:'lancamentos', nome:'Lançamentos'},
- {id:'podcast', nome:'Podcast'},
- {id:'futebol', nome:'Futebol'},
- {id:'tecnologia', nome:'Tecnologia'},
- {id:'reviews', nome:'Reviews'},
- {id:'trailers', nome:'Trailers'},
- {id:'streaming', nome:'Streaming'},
- {id:'cosplay', nome:'Cosplay'},
- {id:'eventos', nome:'Eventos'},
- {id:'esports', nome:'eSports'},
- {id:'cinema', nome:'Cinema'},
- {id:'tv', nome:'TV & Séries'},
- {id:'comunidade', nome:'Comunidade'},
- {id:'ranking', nome:'Ranking'}
+  { id:'manchetes', nome:'Manchetes' },
+  { id:'analises', nome:'Análises' },
+  { id:'entrevistas', nome:'Entrevistas' },
+  { id:'lancamentos', nome:'Lançamentos' },
+  { id:'podcast', nome:'Podcast' },
+  { id:'futebol', nome:'Futebol' },
+  { id:'tecnologia', nome:'Tecnologia' },
+
+  { id:'reviews', nome:'Reviews' },
+  { id:'trailers', nome:'Trailers' },
+  { id:'streaming', nome:'Streaming' },
+  { id:'cosplay', nome:'Cosplay' },
+  { id:'eventos', nome:'Eventos' },
+  { id:'esports', nome:'eSports' },
+  { id:'cinema', nome:'Cinema' },
+  { id:'tv', nome:'TV & Séries' },
+  { id:'comunidade', nome:'Comunidade' },
+  { id:'ranking', nome:'Ranking' }
 ];
 
-/* ================= STORAGE ================= */
+/* ===========================
+   UTIL
+=========================== */
+function load(k,d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch(e){ return d } }
+function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+
+/* ===========================
+   ORDEM & MODE
+=========================== */
+function getMode(){ return localStorage.getItem(KEY_MODE) || 'dynamic'; }
+function setMode(m){ localStorage.setItem(KEY_MODE,m); }
 
 function getOrder(){
- const s = localStorage.getItem(ORDER_KEY);
- if(s){
-  try{
-   const arr = JSON.parse(s);
-   if(Array.isArray(arr)) return arr;
-  }catch(e){}
- }
- return SECOES.slice(0,7).map(s=>s.id);
+  const saved = load(KEY_ORDER,null);
+  if(saved) return saved;
+  return SECOES.slice(0,7).map(s=>s.id);
 }
 
-function saveOrder(a){
- localStorage.setItem(ORDER_KEY, JSON.stringify(a));
+/* ===========================
+   STATS (modo dinâmico)
+=========================== */
+function getStats(){ return load(KEY_STATS,{}); }
+
+function track(id){
+  const stats = getStats();
+  stats[id] = (stats[id] || 0) + 1;
+  save(KEY_STATS,stats);
+
+  if(getMode()==='dynamic'){
+    autoReorder();
+  }
 }
 
-function getMode(){
- return localStorage.getItem(MODE_KEY) || 'fixed';
-}
-function setMode(m){
- localStorage.setItem(MODE_KEY,m);
-}
+function autoReorder(){
+  const stats = getStats();
+  const order = getOrder();
 
-function getStats(){
- const s = localStorage.getItem(STATS_KEY);
- return s ? JSON.parse(s) : {};
-}
-function saveStats(o){
- localStorage.setItem(STATS_KEY,JSON.stringify(o));
+  order.sort((a,b)=>(stats[b]||0)-(stats[a]||0));
+  save(KEY_ORDER,order);
 }
 
-/* ================= ALGORITMO ================= */
-
-function calcDynamicOrder(){
- const stats = getStats();
- return [...SECOES]
- .map(sec=>{
-   const st = stats[sec.id] || {clicks:0,time:0,last:0};
-   const recency = Math.max(0, (Date.now()-st.last)/60000);
-   const score = (st.clicks*2) + (st.time/60) - recency;
-   return {id:sec.id,score};
- })
- .sort((a,b)=>b.score-a.score)
- .slice(0,MAX_SECOES)
- .map(i=>i.id);
-}
-
-/* ================= TRACK ================= */
-
-let current = null;
-let startTime = 0;
-
-function trackSection(id){
- const stats = getStats();
- const now = Date.now();
-
- if(current){
-  const delta = (now-startTime)/1000;
-  stats[current] = stats[current] || {clicks:0,time:0,last:0};
-  stats[current].time += delta;
- }
-
- stats[id] = stats[id] || {clicks:0,time:0,last:0};
- stats[id].clicks++;
- stats[id].last = now;
-
- saveStats(stats);
-
- current = id;
- startTime = now;
-}
-
-/* ================= RENDER ================= */
-
+/* ===========================
+   FILTER BAR
+=========================== */
 function renderBar(){
- const wrap = document.getElementById('filterScroller');
- if(!wrap) return;
+  const bar = document.getElementById('filterScroller');
+  if(!bar) return;
 
- let order = getMode()==='dynamic' ? calcDynamicOrder() : getOrder();
+  const order = getOrder();
+  bar.innerHTML = '';
 
- wrap.innerHTML = '';
+  order.forEach(id=>{
+    const sec = SECOES.find(s=>s.id===id);
+    if(!sec) return;
 
- order.forEach((id,i)=>{
-  const sec = SECOES.find(s=>s.id===id);
-  if(!sec) return;
+    const btn = document.createElement('button');
+    btn.className='filter-tag';
+    btn.textContent=sec.nome;
 
-  const btn = document.createElement('button');
-  btn.className = 'filter-tag';
-  if(getMode()==='dynamic' && i<3) btn.classList.add('netflix-top');
+    btn.onclick=()=>{
+      document.querySelectorAll('.filter-tag').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      track(id);
+      window.carregarSecao?.(id);
+    };
 
-  btn.textContent = sec.nome;
-  btn.onclick = ()=>{
-   document.querySelectorAll('.filter-tag').forEach(b=>b.classList.remove('active'));
-   btn.classList.add('active');
-   trackSection(sec.id);
-   window.carregarSecao?.(sec.id);
-  };
-  wrap.appendChild(btn);
- });
+    bar.appendChild(btn);
+  });
 
- const cfg = document.createElement('button');
- cfg.className = 'filter-tag';
- cfg.innerHTML = '⚙';
- cfg.onclick = openModal;
- wrap.appendChild(cfg);
+  const cfg=document.createElement('button');
+  cfg.className='filter-tag';
+  cfg.innerHTML='⚙';
+  cfg.onclick=openPanel;
+  bar.appendChild(cfg);
 
- const first = wrap.querySelector('.filter-tag');
- if(first){
-  first.classList.add('active');
-  trackSection(order[0]);
-  window.carregarSecao?.(order[0]);
- }
+  const first=bar.querySelector('.filter-tag');
+  if(first){ first.classList.add('active'); window.carregarSecao?.(order[0]); }
 }
 
-/* ================= MODAL ================= */
+/* ===========================
+   SLIDING PANEL
+=========================== */
+function openPanel(){
+  if(document.getElementById('ag-panel')) return;
 
-function openModal(){
- if(document.getElementById('sec-modal')) return;
+  const panel=document.createElement('div');
+  panel.id='ag-panel';
+  panel.style.cssText=`
+    position:fixed;
+    top:0;right:0;
+    width:340px;height:100vh;
+    background:#111;
+    color:#fff;
+    z-index:9999;
+    padding:20px;
+    transform:translateX(100%);
+    transition:.4s;
+  `;
 
- const modal = document.createElement('div');
- modal.id = 'sec-modal';
- modal.style.cssText = `
- position:fixed;inset:0;
- background:rgba(0,0,0,.8);
- z-index:9999;
- display:flex;
- align-items:center;
- justify-content:center;`;
+  panel.innerHTML=`
+    <h3 style="margin:0 0 10px">Personalizar Abas</h3>
 
- modal.innerHTML = `
- <div style="background:#111;padding:20px;width:350px;color:white">
-  <h3>Modo de Cabeçalho</h3>
-  <button id="mode-fixed">🔒 Fixo</button>
-  <button id="mode-dynamic">🤖 Dinâmico</button>
-  <input id="sec-search" placeholder="Buscar..." style="width:100%;margin:10px 0">
-  <div id="sec-list" style="max-height:300px;overflow:auto"></div>
-  <button id="sec-save">Salvar</button>
-  <button id="sec-close">Cancelar</button>
- </div>
- `;
+    <div style="display:flex;gap:10px;margin-bottom:15px">
+      <button id="mode-fixed">Fixo</button>
+      <button id="mode-dynamic">Dinâmico</button>
+    </div>
 
- document.body.appendChild(modal);
+    <input id="sec-search" placeholder="Buscar…" style="width:100%;padding:10px">
 
- document.getElementById('mode-fixed').onclick=()=>setMode('fixed');
- document.getElementById('mode-dynamic').onclick=()=>setMode('dynamic');
- document.getElementById('sec-close').onclick=()=>modal.remove();
- document.getElementById('sec-save').onclick=()=>{
-   modal.remove();
-   renderBar();
- };
- document.getElementById('sec-search').oninput=renderModal;
+    <div id="sec-list" style="margin-top:15px;max-height:70vh;overflow:auto"></div>
+  `;
 
- renderModal();
+  document.body.appendChild(panel);
+  requestAnimationFrame(()=>panel.style.transform='translateX(0)');
+
+  document.getElementById('mode-fixed').onclick=()=>{ setMode('fixed'); };
+  document.getElementById('mode-dynamic').onclick=()=>{ setMode('dynamic'); };
+
+  document.getElementById('sec-search').oninput=renderPanel;
+  renderPanel();
 }
 
-/* ================= LISTA ================= */
+/* ===========================
+   PANEL LIST
+=========================== */
+function renderPanel(){
+  const list=document.getElementById('sec-list');
+  const q=document.getElementById('sec-search').value.toLowerCase();
+  const order=getOrder();
 
-function renderModal(){
- const list = document.getElementById('sec-list');
- const search = document.getElementById('sec-search').value.toLowerCase();
- let order = getOrder();
+  list.innerHTML='';
 
- list.innerHTML='';
+  SECOES.filter(s=>s.nome.toLowerCase().includes(q)).forEach(sec=>{
+    const active=order.includes(sec.id);
 
- SECOES.filter(s=>s.nome.toLowerCase().includes(search)).forEach(sec=>{
-  const active = order.includes(sec.id);
-  const row = document.createElement('div');
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #333';
 
-  const btn = document.createElement('button');
-  btn.textContent = active?'Remover':'Adicionar';
+    const btn=document.createElement('button');
+    btn.textContent=active?'Remover':'Adicionar';
 
-  btn.onclick=()=>{
-   if(active) order = order.filter(i=>i!==sec.id);
-   else if(order.length<MAX_SECOES) order.push(sec.id);
-   saveOrder(order);
-   renderModal();
-  };
+    btn.onclick=()=>{
+      let arr=getOrder();
+      if(active) arr=arr.filter(i=>i!==sec.id);
+      else if(arr.length<MAX) arr.push(sec.id);
+      save(KEY_ORDER,arr);
+      renderPanel();
+      renderBar();
+    };
 
-  row.innerHTML=`<b>${sec.nome}</b>`;
-  row.appendChild(btn);
-  list.appendChild(row);
- });
+    row.innerHTML=`<span>${sec.nome}</span>`;
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
 }
 
-/* ================= START ================= */
-
+/* ===========================
+   START
+=========================== */
 document.addEventListener('DOMContentLoaded',renderBar);
 
 })();
