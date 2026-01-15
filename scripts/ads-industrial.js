@@ -1,5 +1,5 @@
 (function() {
-    // === 1. GESTÃO DE ESTADO E MONITORAMENTO ===
+    // === 1. GESTÃO DE ESTADO E MONITORaMENTO ===
     let isTabActive = true;
     document.addEventListener("visibilitychange", () => isTabActive = !document.hidden);
 
