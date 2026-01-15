@@ -97,32 +97,12 @@
     </div>
 </footer>
 
-<!-- MODAL GLOBAL -->
-<div id="modal-noticia-global"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:99999; overflow-y:auto; backdrop-filter:blur(8px);">
-    <div id="modal-conteudo-interno"
-         style="background:var(--bg); color:var(--text-main); max-width:900px; margin:20px auto; padding:25px; border-radius:12px; position:relative;">
-        <button onclick="window.fecharModalGlobal()"
-                style="position:absolute; top:15px; right:15px; border:none; background:rgba(0,0,0,0.05); width:35px; height:35px; border-radius:50%; font-size:20px; cursor:pointer;">×</button>
-
-        <div id="m-categoria"></div>
-        <h2 id="m-titulo"></h2>
-        <p id="m-resumo"></p>
-        <div id="m-ficha"></div>
-        <iframe id="m-video" allowfullscreen></iframe>
-
-        <div style="margin-top:25px; text-align:center;">
-            <a id="m-link" target="_blank">Ver Artigo Completo</a>
-        </div>
-    </div>
-</div>
-
 <!-- ================= SCRIPTS ================= -->
 
 <!-- Firebase (APENAS UMA VEZ) -->
 <script type="module" src="scripts/config-firebase.js"></script>
 
-<!-- Auth global -->
+<!-- Auth global (Firebase + eventos) -->
 <script type="module" src="scripts/auth.js"></script>
 
 <!-- Scripts do site -->
@@ -158,6 +138,57 @@
         document.getElementById('m-video').src = "";
         document.body.style.overflow = 'auto';
     };
+</script>
+
+<!-- =========================================
+     LISTENER GLOBAL SIMPLES (QUALQUER PÁGINA)
+     NÃO USA FIREBASE
+========================================= -->
+<script>
+(function () {
+
+    function aplicarEstadoUsuario(user) {
+        const areaUsuario = document.getElementById("area-usuario");
+        if (!areaUsuario) return;
+
+        if (user) {
+            console.log("✅ Usuário ativo:", user);
+
+            areaUsuario.innerHTML = `
+                <div class="usuario-logado">
+                    <span class="usuario-nome">${user.nome || "Usuário"}</span>
+                    <button class="logout-btn" onclick="window.logoutAniGeek && window.logoutAniGeek()">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            console.log("🚫 Nenhum usuário logado");
+
+            areaUsuario.innerHTML = `
+                <a href="acesso.html" class="link-login">
+                    Entrar / Criar conta
+                </a>
+            `;
+        }
+    }
+
+    /* Estado inicial */
+    if (window.AniGeekUser !== undefined) {
+        aplicarEstadoUsuario(window.AniGeekUser);
+    }
+
+    /* Login */
+    document.addEventListener("user:login", (e) => {
+        aplicarEstadoUsuario(e.detail);
+    });
+
+    /* Logout */
+    document.addEventListener("user:logout", () => {
+        aplicarEstadoUsuario(null);
+    });
+
+})();
 </script>
 
 </body>
