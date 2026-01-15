@@ -10,13 +10,25 @@
         <!-- ===============================
              🔓 NÃO LOGADO
         ================================ -->
-        <div class="user-auth user-logged-out" data-auth="logged-out">
+        <div
+            class="user-auth user-logged-out"
+            data-auth="logged-out"
+            id="menuUserLoggedOut"
+        >
             <p class="user-msg">Entre ou crie sua conta</p>
             <div class="user-actions">
-                <a href="../acesso.html" class="btn-login" id="btnAbrirLogin">
+                <a
+                    href="../acesso.html"
+                    class="btn-login"
+                    id="btnAbrirLogin"
+                >
                     Entrar
                 </a>
-                <a href="../acesso.html" class="btn-signup" id="btnAbrirCadastro">
+                <a
+                    href="../acesso.html"
+                    class="btn-signup"
+                    id="btnAbrirCadastro"
+                >
                     Criar conta
                 </a>
             </div>
@@ -25,12 +37,23 @@
         <!-- ===============================
              🔐 LOGADO
         ================================ -->
-        <div class="user-auth user-logged-in" data-auth="logged-in" style="display:none;">
+        <div
+            class="user-auth user-logged-in"
+            data-auth="logged-in"
+            id="menuUserLoggedIn"
+            style="display:none;"
+        >
             <p class="user-welcome">
-                Bem-vindo, <strong id="userName">Usuário</strong>
+                Bem-vindo,
+                <strong id="userName">Usuário</strong>
             </p>
 
-            <button class="btn-logout" id="btnLogoutMenu" title="Sair">
+            <button
+                class="btn-logout"
+                id="btnLogoutMenu"
+                title="Sair"
+                type="button"
+            >
                 Sair
             </button>
         </div>
