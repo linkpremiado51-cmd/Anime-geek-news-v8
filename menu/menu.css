@@ -2,7 +2,7 @@
     position: fixed;
 
     /* Ajuste para não ficar atrás do header + abas */
-    top: 140px;
+    top: 170px;
     left: -100%;
 
     width: 100%;
