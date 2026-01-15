@@ -537,29 +537,37 @@ const styles = `
   @keyframes agFadeOut {
     to { opacity: 0; transform: translateY(-10px); }
   }
-    /* --- AJUSTE NA BARRA PARA BOTÃO FIXO --- */
+     /* --- AJUSTE PARA BOTÃO TOTALMENTE À DIREITA --- */
   #filterScroller {
     display: flex;
     align-items: center;
-    padding-right: 50px !important; /* Espaço para o botão fixo não cobrir a última aba */
+    /* Reduzido para 44px (largura do botão) para a última aba encostar nele sem sobrar espaço */
+    padding-right: 44px !important; 
     position: relative;
+    gap: 5px; /* Espaço entre as abas */
   }
 
   .filter-tag.cfg-btn {
     position: sticky;
-    right: 0;
+    right: -1px; /* Valor negativo ou zero cola ele na borda da tela/contêiner */
     z-index: 10;
-    background: #fff; /* Fundo sólido para não sobrepor o texto das abas */
-    margin-left: auto;
-    box-shadow: -10px 0 15px rgba(0,0,0,0.05); /* Sombra suave para separar das abas */
-    border-radius: 0 8px 8px 0;
+    background: #fff;
+    margin-left: 0; /* Remove margens que podem afastar o botão */
+    margin-right: -10px; /* Puxa o botão um pouco mais para a extremidade se necessário */
+    box-shadow: -5px 0 10px rgba(0,0,0,0.05); 
+    border-radius: 4px; /* Ajuste o arredondamento conforme seu gosto */
     min-width: 44px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   body.dark-mode .filter-tag.cfg-btn {
-    background: #141414; /* Cor do seu dark mode */
-    box-shadow: -10px 0 15px rgba(0,0,0,0.5);
+    background: #141414;
+    box-shadow: -5px 0 10px rgba(0,0,0,0.5);
   }
+
 
 `;
 
@@ -604,7 +612,7 @@ function getOrder(){
   const saved = load(CONFIG.KEYS.ORDER, null);
   if(saved) return saved;
   // Padrão inicial com alguns IDs
-  return ['cat_manchetes', 'destaques', 'ultimas'];
+  return ['manchetes', 'destaques', 'ultimas'];
 }
 
 // Encontra ITEM ou CATEGORIA PAI pelo ID
