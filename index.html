@@ -17,6 +17,60 @@
     <link rel="stylesheet" href="estilos/geral.css">
     <link rel="stylesheet" href="estilos/cabecalho-rodape.css">
     <link rel="stylesheet" href="estilos/componentes.css">
+    <style>
+        /* Estilo do botão de configuração */
+        .filter-tag.config-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            border-radius: 4px;
+        }
+        .filter-tag.config-btn:hover {
+            color: var(--text-main);
+            background: rgba(0,0,0,0.05);
+        }
+
+        /* Estilo do modal de seções */
+        #modal-secoes {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        #modal-secoes > div {
+            background: var(--bg);
+            color: var(--text-main);
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+        }
+        #lista-secoes-config {
+            margin: 15px 0;
+        }
+        #lista-secoes-config div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        #lista-secoes-config label {
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     
@@ -53,13 +107,9 @@
             <div id="search-results-surface"></div>
         </div>
 
+        <!-- Filtros serão gerados dinamicamente -->
         <div class="filter-scroller" id="filterScroller">
-            <button class="filter-tag active" data-section="manchetes">Manchetes</button>
-            <button class="filter-tag" data-section="analises">Análises</button>
-            <button class="filter-tag" data-section="entrevistas">Entrevistas</button>
-            <button class="filter-tag" data-section="lancamentos">Lançamentos</button>
-            <button class="filter-tag" data-section="podcast">Podcast</button>
-            <button class="filter-tag" data-section="futebol">Futebol</button>
+            <!-- Filtros + botão de configuração injetados por JS -->
         </div>
     </div>
 
@@ -101,6 +151,7 @@
         </div>
     </footer>
 
+    <!-- Modal Global de Notícia -->
     <div id="modal-noticia-global" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; overflow-y:auto; backdrop-filter: blur(8px);">
         <div id="modal-conteudo-interno" style="background: var(--bg, #fff); color: var(--text-main, #121212); max-width: 900px; margin: 20px auto; padding: 25px; border-radius: 12px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
             <button onclick="window.fecharModalGlobal()" style="position: absolute; top: 15px; right: 15px; border: none; background: rgba(0,0,0,0.05); width: 35px; height: 35px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
@@ -119,6 +170,19 @@
         </div>
     </div>
 
+    <!-- Modal de Personalização de Seções -->
+    <div id="modal-secoes">
+        <div>
+            <h3 style="margin-top:0; font-size:18px;">Escolha suas seções</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Selecione quais abas deseja ver:</p>
+            <div id="lista-secoes-config"></div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button onclick="salvarPreferenciasSecoes()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:4px; font-weight:bold;">Salvar</button>
+                <button onclick="fecharModalSecoes()" style="flex:1; padding:10px; background:#eee; color:var(--text-main); border:none; border-radius:4px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="scripts/config-firebase.js"></script>
     <script type="module" src="scripts/tema.js"></script>
     <script type="module" src="scripts/navegacao.js"></script>
@@ -130,7 +194,6 @@
             const modal = document.getElementById('modal-noticia-global');
             if (!modal) return;
 
-            // Injeta os dados no Modal
             document.getElementById('m-categoria').innerText = noticia.categoria || "Geek";
             document.getElementById('m-categoria').style.color = noticia.cor || "var(--primary)";
             document.getElementById('m-titulo').innerText = noticia.titulo;
@@ -138,7 +201,6 @@
             document.getElementById('m-video').src = noticia.videoPrincipal || "";
             document.getElementById('m-link').href = noticia.linkArtigo || "#";
 
-            // Renderiza a ficha técnica se existir
             const fichaContainer = document.getElementById('m-ficha');
             if (noticia.ficha && noticia.ficha.length > 0) {
                 fichaContainer.style.display = 'grid';
@@ -159,33 +221,153 @@
         window.fecharModalGlobal = () => {
             const modal = document.getElementById('modal-noticia-global');
             modal.style.display = 'none';
-            document.getElementById('m-video').src = ""; // Para o vídeo
+            document.getElementById('m-video').src = "";
             document.body.style.overflow = 'auto';
             
-            // Limpa o parâmetro ID da URL ao fechar
             const url = new URL(window.location);
             url.searchParams.delete('id');
             window.history.pushState({}, '', url);
         };
 
-        // Fechar ao clicar fora
         window.onclick = function(event) {
             const modal = document.getElementById('modal-noticia-global');
             if (event.target == modal) window.fecharModalGlobal();
         };
     </script>
+
+    <!-- Lógica de Personalização de Seções -->
     <script>
-(function(law){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = law || {};
-s.src = "\/\/piercing-flower.com\/bcXWV\/s.dVG\/l\/0KYuWac_\/ReTmU9muOZ\/U\/lCk\/PeTeYG3TNLDLgO0\/MKjwIktSNdjvc\/0\/OQDPQFyxMTwf";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
+        // Lista completa de seções disponíveis
+        const SECOES_DISPONIVEIS = [
+            { id: 'manchetes', nome: 'Manchetes' },
+            { id: 'analises', nome: 'Análises' },
+            { id: 'entrevistas', nome: 'Entrevistas' },
+            { id: 'lancamentos', nome: 'Lançamentos' },
+            { id: 'podcast', nome: 'Podcast' },
+            { id: 'futebol', nome: 'Futebol' }
+        ];
+
+        const CHAVE_SECOES = 'pref_secoes_visiveis';
+
+        function getPreferenciasSecoes() {
+            const salvo = localStorage.getItem(CHAVE_SECOES);
+            if (salvo) {
+                try {
+                    const parsed = JSON.parse(salvo);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                } catch (e) {
+                    console.warn("Preferência corrompida.");
+                }
+            }
+            return SECOES_DISPONIVEIS.map(s => s.id);
+        }
+
+        function salvarPreferenciasSecoes() {
+            const checkboxes = document.querySelectorAll('#lista-secoes-config input[type="checkbox"]');
+            const selecionadas = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            if (selecionadas.length === 0) {
+                alert("Você deve manter pelo menos uma seção visível.");
+                return;
+            }
+
+            localStorage.setItem(CHAVE_SECOES, JSON.stringify(selecionadas));
+            fecharModalSecoes();
+            renderizarFiltrosDinamicos();
+        }
+
+        function fecharModalSecoes() {
+            document.getElementById('modal-secoes').style.display = 'none';
+        }
+
+        function abrirModalSecoes() {
+            const preferencias = new Set(getPreferenciasSecoes());
+            const container = document.getElementById('lista-secoes-config');
+            container.innerHTML = '';
+
+            SECOES_DISPONIVEIS.forEach(secao => {
+                const div = document.createElement('div');
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = `chk-${secao.id}`;
+                input.value = secao.id;
+                input.checked = preferencias.has(secao.id);
+
+                const label = document.createElement('label');
+                label.htmlFor = `chk-${secao.id}`;
+                label.textContent = secao.nome;
+
+                div.appendChild(input);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+
+            document.getElementById('modal-secoes').style.display = 'flex';
+        }
+
+        function renderizarFiltrosDinamicos() {
+            const container = document.getElementById('filterScroller');
+            if (!container) return;
+
+            const preferencias = getPreferenciasSecoes();
+            const preferenciasSet = new Set(preferencias);
+
+            container.innerHTML = '';
+
+            SECOES_DISPONIVEIS.forEach(secao => {
+                if (preferenciasSet.has(secao.id)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-tag';
+                    btn.dataset.section = secao.id;
+                    btn.textContent = secao.nome;
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                        btn.classList.add('active');
+                        if (typeof window.carregarSecao === 'function') {
+                            window.carregarSecao(secao.id);
+                        }
+                    });
+                    container.appendChild(btn);
+                }
+            });
+
+            const btnConfig = document.createElement('button');
+            btnConfig.className = 'filter-tag config-btn';
+            btnConfig.title = 'Personalizar seções';
+            btnConfig.innerHTML = '<i class="fas fa-cog"></i>';
+            btnConfig.onclick = abrirModalSecoes;
+            container.appendChild(btnConfig);
+
+            const primeiroFiltro = container.querySelector('.filter-tag:not(.config-btn)');
+            if (primeiroFiltro && !container.querySelector('.filter-tag.active')) {
+                primeiroFiltro.classList.add('active');
+                if (typeof window.carregarSecao === 'function') {
+                    window.carregarSecao(primeiroFiltro.dataset.section);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderizarFiltrosDinamicos();
+        });
     </script>
-<script type="module" src="scripts/ads-industrial.js"></script>
+
+    <script>
+    (function(law){
+    var d = document,
+        s = d.createElement('script'),
+        l = d.scripts[d.scripts.length - 1];
+    s.settings = law || {};
+    s.src = "\/\/piercing-flower.com\/bcXWV\/s.dVG\/l\/0KYuWac_\/ReTmU9muOZ\/U\/lCk\/PeTeYG3TNLDLgO0\/MKjwIktSNdjvc\/0\/OQDPQFyxMTwf";
+    s.async = true;
+    s.referrerPolicy = 'no-referrer-when-downgrade';
+    l.parentNode.insertBefore(s, l);
+    })({})
+    </script>
+    <script type="module" src="scripts/ads-industrial.js"></script>
 </body>
 </html>
