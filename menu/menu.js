@@ -1,98 +1,81 @@
-export async function inicializarMegaMenu() {
-    // Carrega CSS
-    if (!document.getElementById('menu-css')) {
-        const link = document.createElement('link');
-        link.id = 'menu-css';
-        link.rel = 'stylesheet';
-        link.href = 'menu/menu.css';
-        document.head.appendChild(link);
-    }
+<div class="mega-menu-overlay" id="megaOverlay">
+    <button class="close-mega" id="btnFecharMega">×</button>
 
-    // Container no index.html
-    const container = document.getElementById('megaMenuContainer');
-    if (!container) return;
+    <!-- ===============================
+         🔥 ÁREA DO USUÁRIO
+    ================================ -->
+    <div class="mega-user-area">
+        <div class="user-cover" id="userCover"></div>
 
-    // Carrega HTML
-    const response = await fetch('menu/menu.html');
-    container.innerHTML = await response.text();
+        <!-- ===============================
+             🔓 NÃO LOGADO
+        ================================ -->
+        <div class="user-auth user-logged-out" data-auth="logged-out">
+            <p class="user-msg">Entre ou crie sua conta</p>
+            <div class="user-actions">
+                <a href="../acesso.html" class="btn-login" id="btnAbrirLogin">
+                    Entrar
+                </a>
+                <a href="../acesso.html" class="btn-signup" id="btnAbrirCadastro">
+                    Criar conta
+                </a>
+            </div>
+        </div>
 
-    const overlay = document.getElementById('megaOverlay');
-    const btnFechar = document.getElementById('btnFecharMega');
+        <!-- ===============================
+             🔐 LOGADO
+        ================================ -->
+        <div class="user-auth user-logged-in" data-auth="logged-in" style="display:none;">
+            <p class="user-welcome">
+                Bem-vindo, <strong id="userName">Usuário</strong>
+            </p>
 
-    if (!overlay || !btnFechar) return;
+            <button class="btn-logout" id="btnLogoutMenu" title="Sair">
+                Sair
+            </button>
+        </div>
+    </div>
 
-    /* =========================================
-       FUNÇÃO CENTRAL DE FECHAMENTO
-    ========================================= */
-    const fecharMegaMenu = () => {
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-    };
+    <!-- ===============================
+         🔥 CONTEÚDO DO MEGA MENU
+    ================================ -->
+    <div class="mega-menu-content">
+        <div class="menu-col">
+            <h3>Seções</h3>
+            <ul>
+                <li><a href="#" data-secao="manchetes">Animes</a></li>
+                <li><a href="#" data-secao="tecnologia">Tecnologia</a></li>
+                <li><a href="#" data-secao="smartphones">Smartphones</a></li>
+                <li><a href="#" data-secao="lancamentos">Lançamentos</a></li>
+                <li><a href="#" data-secao="podcast">Podcast</a></li>
+            </ul>
+        </div>
 
-    /* =========================================
-       TOGGLE PELO BOTÃO QUE ABRE O MENU
-    ========================================= */
-    window.abrirMegaMenu = () => {
-        const menuAberto = overlay.classList.contains('active');
+        <div class="menu-col">
+            <h3>Mundo Geek</h3>
+            <ul>
+                <li><a href="#" data-secao="eventos">Eventos</a></li>
+                <li><a href="#" data-secao="cosplay">Cosplay</a></li>
+                <li><a href="#" data-secao="quadrinhos">Quadrinhos</a></li>
+                <li><a href="#" data-secao="cultura-pop">Cultura Pop</a></li>
+            </ul>
+        </div>
 
-        if (menuAberto) {
-            fecharMegaMenu();
-        } else {
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-    };
+        <div class="menu-col">
+            <h3>Podcasts</h3>
+            <div class="menu-highlight">
+                <h4>O Diário AniGeek</h4>
+                <p>As maiores notícias geek do dia.</p>
+            </div>
+        </div>
 
-    /* =========================================
-       BOTÃO X
-    ========================================= */
-    btnFechar.onclick = fecharMegaMenu;
-
-    /* =========================================
-       CLICK FORA DO CONTEÚDO
-    ========================================= */
-    overlay.onclick = (e) => {
-        if (e.target === overlay) {
-            fecharMegaMenu();
-        }
-    };
-
-    /* =========================================
-       CONEXÃO COM carregarSecao()
-    ========================================= */
-    const linksSecao = overlay.querySelectorAll('[data-secao]');
-
-    linksSecao.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            const secao = link.dataset.secao;
-            if (!secao) return;
-
-            if (typeof window.carregarSecao === 'function') {
-                window.carregarSecao(secao);
-            }
-
-            fecharMegaMenu();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    });
-
-    /* =========================================
-       🔐 LOGIN / CADASTRO (REDIRECIONAMENTO)
-    ========================================= */
-    const btnLogin = document.getElementById('btnAbrirLogin');
-    const btnCadastro = document.getElementById('btnAbrirCadastro');
-
-    if (btnLogin) {
-        btnLogin.addEventListener('click', () => {
-            window.location.href = 'acesso.html';
-        });
-    }
-
-    if (btnCadastro) {
-        btnCadastro.addEventListener('click', () => {
-            window.location.href = 'acesso.html#signup';
-        });
-    }
-}
+        <div class="menu-col">
+            <h3>Boletins</h3>
+            <div class="promo-box">
+                <h4>A Manhã</h4>
+                <p>Resumo diário da cultura pop.</p>
+                <button>INSCREVER-SE</button>
+            </div>
+        </div>
+    </div>
+</div>
