@@ -1,11 +1,5 @@
 // global-error-handler.js
 (function() {
-    const padroesErro = [
-        /NOT_FOUND gru1::/i,
-        /404/i,
-        /erro/i
-    ];
-
     const modulos = {};
     const errosDetectados = [];
 
@@ -14,133 +8,84 @@
     // ========================
     window.registerModule = function(id, nome) {
         modulos[id] = nome || id;
-        atualizarPainel();
         console.log(`Módulo registrado: [${id}] ${nome || ''}`);
     };
 
     // ========================
     // Captura de erros globais
     // ========================
-    window.addEventListener('error', function(event) {
+    window.addEventListener('error', event => {
         try {
-            const modulo = event.filename || 'desconhecido';
             errosDetectados.push({
                 texto: event.message,
-                modulo,
-                timestamp: Date.now(),
-                tipo: 'JS Error'
+                modulo: event.filename || 'desconhecido',
+                tipo: 'JS Error',
+                timestamp: Date.now()
             });
-            atualizarPainel();
-        } catch (e) { console.warn(e); }
+        } catch(e) { console.warn(e); }
     });
 
-    window.addEventListener('unhandledrejection', function(event) {
+    window.addEventListener('unhandledrejection', event => {
         try {
-            const modulo = 'Promise Rejection';
             errosDetectados.push({
                 texto: event.reason?.message || String(event.reason),
-                modulo,
-                timestamp: Date.now(),
-                tipo: 'Promise Rejection'
+                modulo: 'Promise Rejection',
+                tipo: 'Promise Rejection',
+                timestamp: Date.now()
             });
-            atualizarPainel();
-        } catch (e) { console.warn(e); }
+        } catch(e) { console.warn(e); }
     });
 
     // ========================
-    // Função de verificação de elementos do DOM
+    // Painel de erros pós-carregamento
     // ========================
-    function verificarElemento(el) {
-        if (!el || !el.innerText) return;
-        padroesErro.forEach(padrao => {
-            if (padrao.test(el.innerText)) {
-                const modulo = el.dataset.modulo || 'desconhecido';
-                errosDetectados.push({
-                    texto: el.innerText,
-                    modulo,
-                    timestamp: Date.now(),
-                    tipo: 'DOM'
-                });
-                atualizarPainel();
-            }
-        });
-    }
-
-    function varrerDOMAsync() {
-        const elementos = document.body.getElementsByTagName('*');
-        let i = 0;
-        function processarBloco() {
-            const bloco = 50;
-            for (let j = 0; j < bloco && i < elementos.length; j++, i++) {
-                verificarElemento(elementos[i]);
-            }
-            if (i < elementos.length) requestIdleCallback(processarBloco);
-        }
-        requestIdleCallback(processarBloco);
-    }
-
-    // ========================
-    // Painel de erros toggle
-    // ========================
-    let painel;
     function criarPainel() {
-        painel = document.createElement('div');
+        const painel = document.createElement('div');
         painel.id = 'painel-global-erros';
         painel.style.cssText = `
             position:fixed; bottom:10px; right:10px;
-            width:350px; max-height:400px; overflow-y:auto;
-            background-color:rgba(0,0,0,0.85); color:#fff;
+            width:400px; max-height:500px; overflow-y:auto;
+            background-color:rgba(0,0,0,0.9); color:#fff;
             font-size:12px; font-family:monospace; padding:10px;
             border-radius:8px; z-index:999999; box-shadow:0 0 10px rgba(0,0,0,0.5);
-            cursor:pointer; display:none;
+            cursor:pointer;
         `;
         painel.title = 'Clique para mostrar/esconder painel de erros';
         document.body.appendChild(painel);
 
-        let painelVisivel = true;
+        let visivel = true;
         painel.addEventListener('click', () => {
-            painelVisivel = !painelVisivel;
-            painel.style.display = painelVisivel ? 'block' : 'none';
+            visivel = !visivel;
+            painel.style.display = visivel ? 'block' : 'none';
         });
+
+        atualizarPainel(painel);
     }
 
     // ========================
-    // Atualiza painel com módulos e erros
+    // Atualiza o painel com erros
     // ========================
-    function atualizarPainel() {
+    function atualizarPainel(painel) {
         if (!painel) return;
         let html = '<b>Módulos Registrados:</b><br>';
         for (let id in modulos) html += `- [${id}] ${modulos[id]}<br>`;
         html += '<hr><b>Erros Detectados:</b><br>';
         if (!errosDetectados.length) html += 'Nenhum erro detectado';
-        else errosDetectados.slice(-20).forEach(e => {
-            const data = new Date(e.timestamp).toLocaleTimeString();
-            html += `<div style="margin-bottom:6px;">
-                        <b>${e.modulo}</b> [${e.tipo}] ${data}: ${e.texto.slice(0,100)}...
+        else errosDetectados.slice(-50).forEach(e => {
+            const tempo = new Date(e.timestamp).toLocaleTimeString();
+            html += `<div style="margin-bottom:5px;">
+                        <b>${e.modulo}</b> [${e.tipo}] (${tempo}): ${e.texto.slice(0,200)}
                      </div>`;
         });
         painel.innerHTML = html;
-        painel.style.display = 'block';
     }
 
     // ========================
-    // Inicialização após DOM pronto
+    // Inicialização após página 100% carregada
     // ========================
-    document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('load', () => {
         criarPainel();
-        varrerDOMAsync(); // varrer DOM sem travar
-        const observer = new MutationObserver(mutations => {
-            for (let mutation of mutations) {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1) {
-                        verificarElemento(node);
-                        node.querySelectorAll('*').forEach(verificarElemento);
-                    }
-                });
-            }
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-        console.log('Global Error Handler iniciado com painel toggle seguro.');
+        console.log('Global Error Handler ativo: site carregou 100%, erros capturados até agora.');
     });
 
 })();
