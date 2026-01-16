@@ -7,9 +7,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* =========================================
-   BASE URL (GitHub Pages)
+   BASE URL (dinâmica / Firebase-safe)
 ========================================= */
-const BASE_URL = "/AniGeekNewsv2";
+const BASE_URL = "";
+
+/* Alternativa ainda mais robusta (se quiser):
+const BASE_URL = window.location.origin;
+*/
 
 export async function inicializarMegaMenu() {
 
