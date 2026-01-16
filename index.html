@@ -14,140 +14,8 @@
     <link rel="stylesheet" href="estilos/geral.css">
     <link rel="stylesheet" href="estilos/cabecalho-rodape.css">
     <link rel="stylesheet" href="estilos/componentes.css">
-
-    <style>
-        /* ============================================================
-           ESTILO EXCLUSIVO DO MODAL (ESTILO MANCHETES ISOLADO)
-           ============================================================ */
-        
-        #modal-noticia-global {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Fundo escuro atrás do modal */
-            overflow-y: auto;
-            backdrop-filter: blur(8px);
-            padding: 20px;
-        }
-
-        /* O container branco interno (Equivalente ao modal-conteudo) */
-        #modal-noticia-global .modal-content {
-            background: #ffffff; 
-            color: #121212;
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 40px;
-            border-radius: 8px;
-            position: relative;
-            font-family: 'Inter', sans-serif;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-
-        /* Botão fechar (Estilo Manchete) */
-        #modal-noticia-global .close-modal {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #eee;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-            transition: 0.2s;
-        }
-        #modal-noticia-global .close-modal:hover { background: #ddd; }
-
-        /* Estilo da Categoria */
-        #m-categoria {
-            color: var(--tema-cor, #ff0055); 
-            font-size: 11px; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            margin-bottom: 15px; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px;
-        }
-
-        /* Título do Modal */
-        #m-titulo {
-            font-size: clamp(26px, 5vw, 40px); 
-            font-weight: 800; 
-            line-height: 1.1; 
-            letter-spacing: -1px; 
-            margin: 0 0 15px 0;
-            color: #121212;
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* Resumo */
-        #m-resumo {
-            font-size: clamp(16px, 2vw, 18px); 
-            line-height: 1.6; 
-            color: #444; 
-            margin-bottom: 25px;
-        }
-
-        /* Grid de informações (Ficha Técnica) */
-        #m-ficha {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px; 
-            background: #f8f9fa; 
-            padding: 15px;
-            border-left: 4px solid var(--tema-cor, #ff0055); 
-            margin-bottom: 25px;
-        }
-
-        /* Estilo interno da ficha técnica */
-        .info-item { display: flex; flex-direction: column; gap: 4px; }
-        .info-label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #888; }
-        .info-valor { font-size: 13px; font-weight: 600; color: #121212; }
-
-        /* Vídeo */
-        #m-video {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            border: none;
-            border-radius: 4px;
-            margin-bottom: 25px;
-            display: block;
-        }
-
-        /* Botão Ler Artigo (DENTRO DO MODAL) */
-        .btn-ver-artigo-modal { 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 8px; 
-            color: #fff;
-            background: #121212;
-            text-decoration: none; 
-            font-size: 13px; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            padding: 15px 30px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-ver-artigo-modal:hover { background: var(--tema-cor, #000); }
-
-        @media (max-width: 768px) {
-            #m-ficha { grid-template-columns: 1fr 1fr; }
-            #modal-noticia-global .modal-content { padding: 25px 15px; }
-        }
-    </style>
+    
+    <link rel="stylesheet" href="estilos/modal-pesquisa.css">
 </head>
 
 <body>
@@ -189,26 +57,6 @@
     </section>
 </main>
 
-<div id="modal-noticia-global">
-    <div class="modal-content">
-        <button class="close-modal" onclick="fecharModalGlobal()">&times;</button>
-        
-        <div id="m-categoria"></div>
-        <h2 id="m-titulo"></h2>
-        <p id="m-resumo"></p>
-
-        <div id="m-ficha"></div>
-
-        <iframe id="m-video" src="" allowfullscreen></iframe>
-
-        <div style="text-align: center; margin-top: 10px;">
-            <a id="m-link" href="#" target="_blank" class="btn-ver-artigo-modal">
-                LER ARTIGO COMPLETO
-            </a>
-        </div>
-    </div>
-</div>
-
 <footer>
     <div style="max-width:var(--container-w); margin:0 auto;">
         <a href="./index.html" class="logo" style="font-size:20px;">AniGeek<span>News</span></a>
@@ -223,73 +71,15 @@
 <script type="module" src="scripts/busca.js"></script>
 <script src="scripts/recomendacao-secao.js"></script>
 
+<script type="module" src="scripts/modal-manager.js"></script>
+
 <script type="module">
     import { inicializarMegaMenu } from './menu/menu.js';
     inicializarMegaMenu();
 </script>
 
 <script>
-    window.abrirModalNoticia = (noticia) => {
-        const modal = document.getElementById('modal-noticia-global');
-        if (!modal) return;
-
-        // Definir cor do tema dinamicamente para o modal
-        const corNoticia = noticia.cor || "#ff0055";
-        modal.style.setProperty('--tema-cor', corNoticia);
-
-        // Preenchimento
-        const catEl = document.getElementById('m-categoria');
-        catEl.innerText = noticia.categoria || "Geek";
-        
-        document.getElementById('m-titulo').innerText = noticia.titulo;
-        document.getElementById('m-resumo').innerText = noticia.resumo || "";
-        document.getElementById('m-video').src = noticia.videoPrincipal || "";
-        document.getElementById('m-link').href = noticia.linkArtigo || "#";
-
-        // Ficha Técnica com as classes do estilo Manchete
-        const fichaContainer = document.getElementById('m-ficha');
-        if (noticia.ficha && noticia.ficha.length > 0) {
-            fichaContainer.style.display = 'grid';
-            fichaContainer.innerHTML = noticia.ficha.map(item => `
-                <div class="info-item">
-                    <span class="info-label">${item.label}</span>
-                    <span class="info-valor">${item.valor}</span>
-                </div>
-            `).join('');
-        } else {
-            fichaContainer.style.display = 'none';
-        }
-
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-
-        if (noticia.id) {
-            const url = new URL(window.location);
-            url.searchParams.set('id', noticia.id);
-            window.history.pushState({}, '', url);
-        }
-    };
-
-    window.fecharModalGlobal = () => {
-        const modal = document.getElementById('modal-noticia-global');
-        modal.style.display = 'none';
-        document.getElementById('m-video').src = ""; 
-        document.body.style.overflow = 'auto'; 
-        
-        const url = new URL(window.location);
-        url.searchParams.delete('id');
-        window.history.pushState({}, '', url);
-    };
-
-    window.onclick = function(event) {
-        const modal = document.getElementById('modal-noticia-global');
-        if (event.target == modal) {
-            fecharModalGlobal();
-        }
-    };
-</script>
-
-<script>
+/* Lógica de estado do usuário mantida */
 (function () {
     function aplicarEstadoUsuario(user) {
         const areaUsuario = document.getElementById("area-usuario");
@@ -301,8 +91,7 @@
                     <button class="logout-btn" onclick="window.logoutAniGeek && window.logoutAniGeek()">
                         <i class="fa-solid fa-right-from-bracket"></i>
                     </button>
-                </div>
-            `;
+                </div>`;
         } else {
             areaUsuario.innerHTML = `<a href="acesso.html" class="link-login">Entrar / Criar conta</a>`;
         }
