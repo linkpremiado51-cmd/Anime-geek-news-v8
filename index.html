@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta name="56dec61931ebd1272f19e50443931bbff017f20b" content="56dec61931ebd1272f19e50443931bbff017f20b" />
-    <meta name="referrer" content="no-referrer-when-downgrade" />
-    <meta name="clckd" content="1ddd5f4727fa7a78e4747eb6a043ffbf" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AniGeekNews | Jornalismo Geek</title>
@@ -19,35 +16,17 @@
     <link rel="stylesheet" href="estilos/componentes.css">
 
     <style>
-        /* Estilo do botão de configuração dos filtros */
-        .filter-tag.config-btn {
-            background: none; border: none; color: var(--text-muted);
-            font-size: 16px; padding: 5px; display: flex;
-            align-items: center; justify-content: center;
-            min-width: 36px; border-radius: 4px; cursor: pointer;
-        }
-        .filter-tag.config-btn:hover {
-            color: var(--text-main); background: rgba(0,0,0,0.05);
-        }
-
-        /* Estilo do modal de seções (configuração) */
-        #modal-secoes {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 9999;
-            justify-content: center; align-items: center;
-        }
-        #modal-secoes > div {
-            background: var(--bg); color: var(--text-main); padding: 25px;
-            border-radius: 12px; max-width: 400px; width: 90%;
-        }
-        #lista-secoes-config { margin: 15px 0; }
+        /* Estilos essenciais que estavam na Versão 1 */
+        .filter-tag.config-btn { background: none; border: none; color: var(--text-muted); font-size: 16px; padding: 5px; display: flex; align-items: center; justify-content: center; min-width: 36px; border-radius: 4px; cursor: pointer; }
+        #modal-secoes { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
+        #modal-secoes > div { background: var(--bg); color: var(--text-main); padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; }
         #lista-secoes-config div { display: flex; align-items: center; margin-bottom: 10px; }
         #lista-secoes-config label { margin-left: 8px; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
     <div id="progress-bar"></div>
-
+    
     <div id="megaMenuContainer"></div>
 
     <div class="sticky-header-group">
@@ -60,12 +39,9 @@
                     <li class="nav-item"><a href="#">Mangás</a></li>
                     <li class="nav-item" id="area-usuario"><span>Aguardando...</span></li>
                 </ul>
-                
-                <div class="header-actions">
-                    <button class="menu-toggle" onclick="window.abrirMegaMenu && window.abrirMegaMenu()" aria-label="Abrir menu">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
+                <button class="menu-toggle" onclick="window.abrirMegaMenu && window.abrirMegaMenu()" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </header>
 
@@ -83,20 +59,20 @@
     <main id="dynamic-content">
         <section class="hero">
             <div id="conteudo_de_destaque">
-                <p style="text-align: center; padding-top: 100px; color: var(--text-muted);">Iniciando portal...</p>
+                <p style="text-align:center; padding-top:100px; color:var(--text-muted);">Iniciando portal...</p>
             </div>
         </section>
 
         <div class="newsletter-card">
             <h3>Briefing Matinal</h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Curadoria das notícias mais importantes.</p>
-            <input type="email" placeholder="seu@email.com" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);">
-            <button style="width: 100%; padding: 12px; background: var(--text-main); color: var(--bg); border: none; cursor: pointer; font-weight: bold;">ASSINAR BRIEFING</button>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Curadoria das notícias mais importantes.</p>
+            <input type="email" placeholder="seu@email.com" style="width:100%; padding:10px; margin:10px 0; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
+            <button style="width:100%; padding:12px; background:var(--text-main); color:var(--bg); border:none; cursor:pointer; font-weight:bold;">ASSINAR BRIEFING</button>
         </div>
     </main>
 
     <footer>
-        <div style="max-width: var(--container-w); margin: 0 auto;">
+        <div style="max-width:var(--container-w); margin: 0 auto;">
             <a href="./index.html" class="logo" style="font-size: 20px;">AniGeek<span>News</span></a>
             <p style="margin-top: 10px;">© 2025 AniGeekNews. Jornalismo Geek Independente.</p>
         </div>
@@ -105,15 +81,11 @@
     <div id="modal-noticia-global" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; overflow-y:auto; backdrop-filter: blur(8px);">
         <div id="modal-conteudo-interno" style="background: var(--bg, #fff); color: var(--text-main, #121212); max-width: 900px; margin: 20px auto; padding: 25px; border-radius: 12px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
             <button onclick="window.fecharModalGlobal()" style="position: absolute; top: 15px; right: 15px; border: none; background: rgba(0,0,0,0.05); width: 35px; height: 35px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
-            
             <div id="m-categoria" style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;"></div>
             <h2 id="m-titulo" style="font-size: clamp(22px, 5vw, 36px); font-weight: 850; margin: 0 0 15px 0; line-height: 1.2;"></h2>
             <p id="m-resumo" style="font-size: 16px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;"></p>
-            
             <div id="m-ficha" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
-            
             <iframe id="m-video" style="width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px;" allowfullscreen></iframe>
-            
             <div style="margin-top: 25px; text-align: center;">
                 <a id="m-link" href="#" target="_blank" style="display: inline-block; padding: 12px 25px; background: var(--text-main); color: var(--bg); text-decoration: none; font-weight: 700; border-radius: 4px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Ver Artigo Completo</a>
             </div>
@@ -126,8 +98,8 @@
             <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Selecione quais abas deseja ver:</p>
             <div id="lista-secoes-config"></div>
             <div style="margin-top:20px; display:flex; gap:10px;">
-                <button onclick="salvarPreferenciasSecoes()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:4px; font-weight:bold; cursor: pointer;">Salvar</button>
-                <button onclick="fecharModalSecoes()" style="flex:1; padding:10px; background:#eee; color:var(--text-main); border:none; border-radius:4px; cursor: pointer;">Cancelar</button>
+                <button onclick="salvarPreferenciasSecoes()" style="flex:1; padding:10px; background:var(--primary, #e63946); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Salvar</button>
+                <button onclick="fecharModalSecoes()" style="flex:1; padding:10px; background:#eee; color:#333; border:none; border-radius:4px; cursor:pointer;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -145,15 +117,11 @@
     </script>
 
     <script>
-        // Função que recebe a notícia e preenche o modal existente no HTML acima
         window.abrirModalNoticia = (noticia) => {
             const modal = document.getElementById('modal-noticia-global');
-            if (!modal) {
-                console.error("ERRO CRÍTICO: Modal não encontrado no HTML!");
-                return;
-            }
+            if (!modal) return;
 
-            // Preenchimento básico
+            // Preenche dados básicos
             document.getElementById('m-categoria').innerText = noticia.categoria || "Geek";
             document.getElementById('m-categoria').style.color = noticia.cor || "var(--primary)";
             document.getElementById('m-titulo').innerText = noticia.titulo;
@@ -161,7 +129,7 @@
             document.getElementById('m-video').src = noticia.videoPrincipal || "";
             document.getElementById('m-link').href = noticia.linkArtigo || "#";
 
-            // Preenchimento da Ficha Técnica (Recuperado da V1)
+            // Preenche Ficha Técnica
             const fichaContainer = document.getElementById('m-ficha');
             if (noticia.ficha && noticia.ficha.length > 0) {
                 fichaContainer.style.display = 'grid';
@@ -175,12 +143,11 @@
                 fichaContainer.style.display = 'none';
             }
 
-            // Exibir modal e travar rolagem
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
 
-            // Atualizar URL sem recarregar (PushState da V1)
-            if (noticia.id) {
+            // Atualiza URL sem dar refresh (essencial para o busca.js)
+            if(noticia.id) {
                 const url = new URL(window.location);
                 url.searchParams.set('id', noticia.id);
                 window.history.pushState({}, '', url);
@@ -193,7 +160,6 @@
             document.getElementById('m-video').src = "";
             document.body.style.overflow = 'auto';
             
-            // Limpar URL
             const url = new URL(window.location);
             url.searchParams.delete('id');
             window.history.pushState({}, '', url);
@@ -223,7 +189,7 @@
                 try {
                     const parsed = JSON.parse(salvo);
                     if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                } catch (e) { console.warn("Pref corrompida."); }
+                } catch (e) { console.warn("Erro ao ler preferências"); }
             }
             return SECOES_DISPONIVEIS.map(s => s.id);
         }
@@ -231,35 +197,22 @@
         function salvarPreferenciasSecoes() {
             const checkboxes = document.querySelectorAll('#lista-secoes-config input[type="checkbox"]');
             const selecionadas = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
-
-            if (selecionadas.length === 0) {
-                alert("Você deve manter pelo menos uma seção visível.");
-                return;
-            }
-
+            if (selecionadas.length === 0) { alert("Mantenha ao menos uma seção."); return; }
             localStorage.setItem(CHAVE_SECOES, JSON.stringify(selecionadas));
             fecharModalSecoes();
             renderizarFiltrosDinamicos();
         }
 
         function fecharModalSecoes() { document.getElementById('modal-secoes').style.display = 'none'; }
-
+        
         function abrirModalSecoes() {
-            const prefs = new Set(getPreferenciasSecoes());
+            const preferencias = new Set(getPreferenciasSecoes());
             const container = document.getElementById('lista-secoes-config');
             container.innerHTML = '';
-
             SECOES_DISPONIVEIS.forEach(secao => {
                 const div = document.createElement('div');
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.id = `chk-${secao.id}`;
-                input.value = secao.id;
-                input.checked = prefs.has(secao.id);
-                const label = document.createElement('label');
-                label.htmlFor = `chk-${secao.id}`;
-                label.textContent = secao.nome;
-                div.appendChild(input); div.appendChild(label);
+                div.innerHTML = `<input type="checkbox" id="chk-${secao.id}" value="${secao.id}" ${preferencias.has(secao.id) ? 'checked' : ''}>
+                                 <label for="chk-${secao.id}">${secao.nome}</label>`;
                 container.appendChild(div);
             });
             document.getElementById('modal-secoes').style.display = 'flex';
@@ -268,76 +221,49 @@
         function renderizarFiltrosDinamicos() {
             const container = document.getElementById('filterScroller');
             if (!container) return;
-
-            const prefs = new Set(getPreferenciasSecoes());
+            const preferenciasSet = new Set(getPreferenciasSecoes());
             container.innerHTML = '';
 
             SECOES_DISPONIVEIS.forEach(secao => {
-                if (prefs.has(secao.id)) {
+                if (preferenciasSet.has(secao.id)) {
                     const btn = document.createElement('button');
                     btn.className = 'filter-tag';
-                    btn.dataset.section = secao.id;
                     btn.textContent = secao.nome;
-                    btn.addEventListener('click', () => {
+                    btn.onclick = () => {
                         document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
                         btn.classList.add('active');
-                        if (typeof window.carregarSecao === 'function') window.carregarSecao(secao.id);
-                    });
+                        if (window.carregarSecao) window.carregarSecao(secao.id);
+                    };
                     container.appendChild(btn);
                 }
             });
 
             const btnConfig = document.createElement('button');
             btnConfig.className = 'filter-tag config-btn';
-            btnConfig.title = 'Personalizar seções';
             btnConfig.innerHTML = '<i class="fas fa-cog"></i>';
             btnConfig.onclick = abrirModalSecoes;
             container.appendChild(btnConfig);
-
-            const primeiroFiltro = container.querySelector('.filter-tag:not(.config-btn)');
-            if (primeiroFiltro && !container.querySelector('.filter-tag.active')) {
-                primeiroFiltro.classList.add('active');
-                if (typeof window.carregarSecao === 'function') window.carregarSecao(primeiroFiltro.dataset.section);
-            }
         }
 
         document.addEventListener('DOMContentLoaded', renderizarFiltrosDinamicos);
     </script>
 
     <script>
-    (function(law){
-    var d = document, s = d.createElement('script'), l = d.scripts[d.scripts.length - 1];
-    s.settings = law || {};
-    s.src = "\/\/piercing-flower.com\/bcXWV\/s.dVG\/l\/0KYuWac_\/ReTmU9muOZ\/U\/lCk\/PeTeYG3TNLDLgO0\/MKjwIktSNdjvc\/0\/OQDPQFyxMTwf";
-    s.async = true; s.referrerPolicy = 'no-referrer-when-downgrade';
-    l.parentNode.insertBefore(s, l);
-    })({})
-    </script>
-    <script type="module" src="scripts/ads-industrial.js"></script>
-
-    <script>
-    (function () {
-        function aplicarEstadoUsuario(user) {
-            const areaUsuario = document.getElementById("area-usuario");
-            if (!areaUsuario) return;
-            if (user) {
-                console.log("✅ Usuário ativo:", user);
-                areaUsuario.innerHTML = `
-                    <div class="usuario-logado">
-                        <span class="usuario-nome">${user.nome || "Usuário"}</span>
-                        <button class="logout-btn" onclick="window.logoutAniGeek && window.logoutAniGeek()">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                        </button>
-                    </div>`;
-            } else {
-                console.log("🚫 Nenhum usuário logado");
-                areaUsuario.innerHTML = `<a href="acesso.html" class="link-login">Entrar / Criar conta</a>`;
+        (function () {
+            function aplicarEstadoUsuario(user) {
+                const areaUsuario = document.getElementById("area-usuario");
+                if (!areaUsuario) return;
+                if (user) {
+                    areaUsuario.innerHTML = `<div class="usuario-logado"><span class="usuario-nome">${user.nome || "Usuário"}</span>
+                        <button class="logout-btn" onclick="window.logoutAniGeek && window.logoutAniGeek()"><i class="fa-solid fa-right-from-bracket"></i></button></div>`;
+                } else {
+                    areaUsuario.innerHTML = `<a href="acesso.html" class="link-login">Entrar / Criar conta</a>`;
+                }
             }
-        }
-        if (window.AniGeekUser !== undefined) aplicarEstadoUsuario(window.AniGeekUser);
-        document.addEventListener("user:login", (e) => aplicarEstadoUsuario(e.detail));
-        document.addEventListener("user:logout", () => aplicarEstadoUsuario(null));
-    })();
+            if (window.AniGeekUser !== undefined) aplicarEstadoUsuario(window.AniGeekUser);
+            document.addEventListener("user:login", (e) => aplicarEstadoUsuario(e.detail));
+            document.addEventListener("user:logout", () => aplicarEstadoUsuario(null));
+        })();
     </script>
 </body>
 </html>
