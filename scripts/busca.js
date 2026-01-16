@@ -39,7 +39,7 @@ if (inputBusca) {
         }
 
         timeoutBusca = setTimeout(() => {
-            // IMPORTANTE: Verifica se o array existe e tem dados
+            // IMPORTaNTE: Verifica se o array existe e tem dados
             const bancoDeDados = window.noticiasFirebase || [];
             
             console.log(`🔍 Buscando por "${termo}" em ${bancoDeDados.length} notícias.`);
