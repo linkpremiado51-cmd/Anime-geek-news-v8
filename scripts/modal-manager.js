@@ -1,102 +1,88 @@
-/* scripts/modal-manager.js */
+import { getFirestore, doc, getDoc, collection, query, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 1. Injeta a estrutura HTML moderna
+const db = getFirestore();
+let noticiasDaSessao = []; // Array para armazenar a "playlist" de notícias
+let indiceAtual = 0;
+
 const estruturaHTML = `
 <div id="modal-noticia-global">
     <div class="modal-content">
         <div class="video-header">
-            <button class="close-modal" onclick="window.fecharModalGlobal()">&times;</button>
-            <iframe id="m-video" src="" allow="autoplay; fullscreen"></iframe>
+            <iframe id="m-video" src="" allow="autoplay"></iframe>
         </div>
-        
         <div class="modal-body">
             <div id="m-categoria"></div>
             <h2 id="m-titulo"></h2>
-            <p id="m-resumo"></p>
-            
             <div id="m-ficha"></div>
-
-            <a id="m-link" href="#" target="_blank" class="btn-ver-artigo-modal">
-                Ler Artigo Completo
-            </a>
+            <p id="m-resumo"></p>
         </div>
+        <div class="modal-nav-footer">
+            <button class="btn-nav" onclick="window.navegarNoticia(-1)">Anterior</button>
+            <a id="m-link" target="_blank" class="btn-ver-artigo-modal">LER TUDO</a>
+            <button class="btn-nav" onclick="window.navegarNoticia(1)">Próxima</button>
+        </div>
+        <button onclick="window.fecharModalGlobal()" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:30px; height:30px;">×</button>
     </div>
 </div>`;
 
 document.body.insertAdjacentHTML('beforeend', estruturaHTML);
 
-// 2. Funções de Controle
-export const abrirModalNoticia = (noticia) => {
+// Função para renderizar os dados no Modal
+const renderizarDados = (noticia) => {
+    const cor = noticia.cor || "#ff0000";
     const modal = document.getElementById('modal-noticia-global');
-    if (!modal) return;
+    modal.style.setProperty('--tema-cor', cor);
 
-    // Define a cor do tema (vermelho por padrão conforme seu teste)
-    const corNoticia = noticia.cor || "#ff0000";
-    modal.style.setProperty('--tema-cor', corNoticia);
-
-    // Preenchimento de Dados
-    document.getElementById('m-categoria').innerText = noticia.categoria || "Destaque";
+    document.getElementById('m-categoria').innerText = noticia.categoria || "GEEK";
     document.getElementById('m-titulo').innerText = noticia.titulo;
     document.getElementById('m-resumo').innerText = noticia.resumo || "";
-    
-    // Tratamento de URL do Vídeo (Auto-Embed)
-    let videoUrl = noticia.videoPrincipal || "";
-    if(videoUrl.includes("watch?v=")) {
-        videoUrl = videoUrl.replace("watch?v=", "embed/") + "?autoplay=1&mute=1&modestbranding=1";
-    }
-    document.getElementById('m-video').src = videoUrl;
-    
     document.getElementById('m-link').href = noticia.linkArtigo || "#";
 
-    // Ficha Técnica (Horizontal Pills)
+    let vUrl = noticia.videoPrincipal || "";
+    if(vUrl.includes("watch?v=")) vUrl = vUrl.replace("watch?v=", "embed/") + "?autoplay=1&mute=1";
+    document.getElementById('m-video').src = vUrl;
+
     const fichaContainer = document.getElementById('m-ficha');
-    if (noticia.ficha && noticia.ficha.length > 0) {
-        fichaContainer.innerHTML = noticia.ficha.map(item => `
-            <div class="info-item">
-                <span class="info-label">${item.label}</span>
-                <span class="info-valor">${item.valor}</span>
-            </div>
-        `).join('');
-    } else {
-        // Caso não tenha ficha, coloca info padrão
-        fichaContainer.innerHTML = `
-            <div class="info-item"><span class="info-label">Tipo</span><span class="info-valor">Notícia</span></div>
-            <div class="info-item"><span class="info-label">Leitura</span><span class="info-valor">2 min</span></div>
-        `;
-    }
+    fichaContainer.innerHTML = (noticia.ficha || []).map(item => `
+        <div class="info-item">
+            <span class="info-label">${item.label}</span>
+            <span class="info-valor">${item.valor}</span>
+        </div>
+    `).join('');
+};
 
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
+// Função principal disparada pela busca
+window.abrirModalNoticia = async (idNoticia, nomeColecao = "noticias") => {
+    // 1. Busca a notícia específica no Firebase
+    const docRef = doc(db, nomeColecao, idNoticia);
+    const docSnap = await getDoc(docRef);
 
-    // Atualiza URL para SEO/Compartilhamento
-    if (noticia.id) {
-        const url = new URL(window.location);
-        url.searchParams.set('id', noticia.id);
-        window.history.pushState({}, '', url);
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        renderizarDados(data);
+        
+        // 2. Opcional: Busca as próximas 5 notícias da mesma categoria para a "playlist"
+        const q = query(collection(db, nomeColecao), where("categoria", "==", data.categoria), limit(6));
+        const querySnapshot = await getDocs(q);
+        noticiasDaSessao = querySnapshot.docs.map(d => d.data());
+        indiceAtual = noticiasDaSessao.findIndex(n => n.titulo === data.titulo);
+
+        document.getElementById('modal-noticia-global').style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 };
 
-export const fecharModalGlobal = () => {
-    const modal = document.getElementById('modal-noticia-global');
-    if (!modal) return;
-    
-    modal.style.display = 'none';
-    document.getElementById('m-video').src = ""; 
-    document.body.style.overflow = 'auto'; 
-    
-    const url = new URL(window.location);
-    url.searchParams.delete('id');
-    window.history.pushState({}, '', url);
+// Navegação interna do Modal
+window.navegarNoticia = (direcao) => {
+    let novoIndice = indiceAtual + direcao;
+    if (novoIndice >= 0 && novoIndice < noticiasDaSessao.length) {
+        indiceAtual = novoIndice;
+        renderizarDados(noticiasDaSessao[indiceAtual]);
+    }
 };
 
-// 3. Vincula ao Window para acesso via busca.js
-window.abrirModalNoticia = abrirModalNoticia;
-window.fecharModalGlobal = fecharModalGlobal;
-
-// Fecha ao clicar fora (no desktop)
-window.onclick = function(event) {
-    const modal = document.getElementById('modal-noticia-global');
-    if (event.target == modal) {
-        fecharModalGlobal();
-    }
+window.fecharModalGlobal = () => {
+    document.getElementById('modal-noticia-global').style.display = 'none';
+    document.getElementById('m-video').src = "";
+    document.body.style.overflow = 'auto';
 };
