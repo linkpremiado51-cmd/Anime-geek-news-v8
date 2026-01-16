@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acesso - AniGeekNews</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg: #fdfdfd;
+    --border: #ddd;
+    --text: #202020;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Inter, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.auth-container {
+    background: #fff;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--border);
+}
+.form-title {
+    text-align: center;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+.input-group { margin-bottom: 15px; }
+.input-group label {
+    font-size: 12px;
+    font-weight: 700;
+}
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+}
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: #000;
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+.links-footer {
+    margin-top: 15px;
+    text-align: center;
+}
+.links-footer a {
+    cursor: pointer;
+    font-size: 13px;
+}
+.hidden { display: none; }
+#mensagem {
+    margin-top: 15px;
+    text-align: center;
+    font-weight: 600;
+}
+</style>
+</head>
+
+<body>
+
+<div class="auth-container">
+
+<h2 style="text-align:center">AniGeekNews</h2>
+
+<!-- LOGIN -->
+<div id="login-section">
+    <div class="form-title">Entrar</div>
+
+    <div class="input-group">
+        <label>E-mail</label>
+        <input type="email" id="login-email">
+    </div>
+
+    <div class="input-group">
+        <label>Senha</label>
+        <input type="password" id="login-senha">
+    </div>
+
+    <button class="btn-primary" id="login-btn">Entrar</button>
+
+    <div class="links-footer">
+        <a onclick="showTab('signup')">Criar conta</a>
+    </div>
+</div>
+
+<!-- CADASTRO -->
+<div id="signup-section" class="hidden">
+    <div class="form-title">Criar conta</div>
+
+    <div class="input-group">
+        <label>Nome</label>
+        <input type="text" id="signup-nome">
+    </div>
+
+    <div class="input-group">
+        <label>E-mail</label>
+        <input type="email" id="signup-email">
+    </div>
+
+    <div class="input-group">
+        <label>Senha</label>
+        <input type="password" id="signup-senha">
+    </div>
+
+    <button class="btn-primary" id="signup-btn">Cadastrar</button>
+
+    <div class="links-footer">
+        <a onclick="showTab('login')">Já tenho conta</a>
+    </div>
+</div>
+
+<p id="mensagem"></p>
+</div>
+
+<!-- FIREBASE + AUTH -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+/* =======================
+   FIREBASE CONFIG
+======================= */
+const firebaseConfig = {
+    apiKey: "AIzaSyBC_ad4X9OwCHKvcG_pNQkKEl76Zw2tu6o",
+    authDomain: "anigeeknews.firebaseapp.com",
+    projectId: "anigeeknews",
+    storageBucket: "anigeeknews.firebasestorage.app",
+    messagingSenderId: "769322939926",
+    appId: "1:769322939926:web:6eb91a96a3f74670882737"
+};
+
+console.log("🚀 Iniciando Firebase...");
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+console.log("✅ Firebase iniciado com sucesso");
+
+/* =======================
+   ELEMENTOS
+======================= */
+const msg = document.getElementById("mensagem");
+
+window.showTab = function(tab) {
+    console.log("🔁 Trocando aba para:", tab);
+    document.getElementById("login-section").classList.toggle("hidden", tab !== "login");
+    document.getElementById("signup-section").classList.toggle("hidden", tab !== "signup");
+    msg.textContent = "";
+};
+
+/* =======================
+   LOGIN
+======================= */
+document.getElementById("login-btn").addEventListener("click", async () => {
+    const email = document.getElementById("login-email").value;
+    const senha = document.getElementById("login-senha").value;
+
+    console.log("🔐 Tentando login:", email);
+
+    try {
+        const userCred = await signInWithEmailAndPassword(auth, email, senha);
+        console.log("✅ Login OK:", userCred.user);
+        window.location.href = "index.html";
+    } catch (e) {
+        console.error("❌ Erro no login:", e.code, e.message);
+        msg.textContent = "E-mail ou senha inválidos";
+    }
+});
+
+/* =======================
+   CADASTRO
+======================= */
+document.getElementById("signup-btn").addEventListener("click", async () => {
+    const nome = document.getElementById("signup-nome").value;
+    const email = document.getElementById("signup-email").value;
+    const senha = document.getElementById("signup-senha").value;
+
+    console.log("📝 Criando conta:", email);
+
+    try {
+        const cred = await createUserWithEmailAndPassword(auth, email, senha);
+
+        await updateProfile(cred.user, {
+            displayName: nome
+        });
+
+        console.log("✅ Conta criada:", cred.user);
+        window.location.href = "index.html";
+    } catch (e) {
+        console.error("❌ Erro no cadastro:", e.code, e.message);
+        msg.textContent = "Erro ao criar conta";
+    }
+});
+
+/* =======================
+   ESTADO DE LOGIN
+======================= */
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        console.log("👤 Usuário autenticado:", user.displayName || user.email);
+    } else {
+        console.log("🚪 Nenhum usuário logado");
+    }
+});
+</script>
+
+</body>
+</html>
