@@ -1,48 +1,34 @@
-/* scripts/modal-manager.js */
-import { getFirestore, doc, getDoc, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, query, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const db = getFirestore();
-let playlistNoticias = []; // Cache das notícias para navegação
+let noticiasDaSessao = []; // Array para armazenar a "playlist" de notícias
 let indiceAtual = 0;
 
-// Injeta a estrutura HTML (Player Topo + Ficha Grid + Botão Dinâmico)
 const estruturaHTML = `
 <div id="modal-noticia-global">
     <div class="modal-content">
         <div class="video-header">
-            <button class="close-modal-btn" onclick="window.fecharModalGlobal()">×</button>
-            <iframe id="m-video" src="" allow="autoplay; fullscreen"></iframe>
+            <iframe id="m-video" src="" allow="autoplay"></iframe>
         </div>
-        
         <div class="modal-body">
             <div id="m-categoria"></div>
             <h2 id="m-titulo"></h2>
-            
             <div id="m-ficha"></div>
-
             <p id="m-resumo"></p>
         </div>
-
         <div class="modal-nav-footer">
-            <button class="btn-nav" onclick="window.navegarNoticia(-1)"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
-            <a id="m-link" href="#" target="_blank" class="btn-ver-artigo-modal">LER ARTIGO COMPLETO</a>
-            <button class="btn-nav" onclick="window.navegarNoticia(1)">Próxima <i class="fa-solid fa-chevron-right"></i></button>
+            <button class="btn-nav" onclick="window.navegarNoticia(-1)">Anterior</button>
+            <a id="m-link" target="_blank" class="btn-ver-artigo-modal">LER TUDO</a>
+            <button class="btn-nav" onclick="window.navegarNoticia(1)">Próxima</button>
         </div>
+        <button onclick="window.fecharModalGlobal()" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:30px; height:30px;">×</button>
     </div>
-</div>
-
-<style>
-    .close-modal-btn { position: absolute; top: 15px; right: 15px; z-index: 10; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 20px; }
-    .modal-nav-footer { display: flex; gap: 10px; padding: 20px; background: #fff; border-top: 1px solid #eee; align-items: center; }
-    .btn-nav { flex: 1; padding: 12px; border: 1px solid #eee; background: #f9f9f9; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 11px; text-transform: uppercase; transition: 0.2s; }
-    .btn-nav:hover { background: #eee; }
-</style>
-`;
+</div>`;
 
 document.body.insertAdjacentHTML('beforeend', estruturaHTML);
 
-// Função para preencher os dados visualmente
-const preencherModal = (noticia) => {
+// Função para renderizar os dados no Modal
+const renderizarDados = (noticia) => {
     const cor = noticia.cor || "#ff0000";
     const modal = document.getElementById('modal-noticia-global');
     modal.style.setProperty('--tema-cor', cor);
@@ -52,54 +38,46 @@ const preencherModal = (noticia) => {
     document.getElementById('m-resumo').innerText = noticia.resumo || "";
     document.getElementById('m-link').href = noticia.linkArtigo || "#";
 
-    // Vídeo Embed
     let vUrl = noticia.videoPrincipal || "";
     if(vUrl.includes("watch?v=")) vUrl = vUrl.replace("watch?v=", "embed/") + "?autoplay=1&mute=1";
     document.getElementById('m-video').src = vUrl;
 
-    // Ficha Técnica (Layout Grid)
     const fichaContainer = document.getElementById('m-ficha');
-    if (noticia.ficha && noticia.ficha.length > 0) {
-        fichaContainer.style.display = 'grid';
-        fichaContainer.innerHTML = noticia.ficha.map(item => `
-            <div class="info-item">
-                <span class="info-label">${item.label}</span>
-                <span class="info-valor">${item.valor}</span>
-            </div>
-        `).join('');
-    } else {
-        fichaContainer.style.display = 'none';
-    }
+    fichaContainer.innerHTML = (noticia.ficha || []).map(item => `
+        <div class="info-item">
+            <span class="info-label">${item.label}</span>
+            <span class="info-valor">${item.valor}</span>
+        </div>
+    `).join('');
 };
 
-// Abre o modal e busca a coleção no Firebase para permitir navegação
-window.abrirModalNoticia = async (noticiaOriginal) => {
-    preencherModal(noticiaOriginal);
-    document.getElementById('modal-noticia-global').style.display = 'block';
-    document.body.style.overflow = 'hidden';
+// Função principal disparada pela busca
+window.abrirModalNoticia = async (idNoticia, nomeColecao = "noticias") => {
+    // 1. Busca a notícia específica no Firebase
+    const docRef = doc(db, nomeColecao, idNoticia);
+    const docSnap = await getDoc(docRef);
 
-    // Busca outras notícias da mesma categoria para a "Playlist"
-    try {
-        const q = query(
-            collection(db, "noticias"), 
-            where("categoria", "==", noticiaOriginal.categoria), 
-            limit(10)
-        );
-        const querySnapshot = await getDocs(q);
-        playlistNoticias = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        renderizarDados(data);
         
-        // Encontra a posição da notícia atual na lista
-        indiceAtual = playlistNoticias.findIndex(n => n.titulo === noticiaOriginal.titulo);
-    } catch (e) {
-        console.error("Erro ao carregar playlist:", e);
+        // 2. Opcional: Busca as próximas 5 notícias da mesma categoria para a "playlist"
+        const q = query(collection(db, nomeColecao), where("categoria", "==", data.categoria), limit(6));
+        const querySnapshot = await getDocs(q);
+        noticiasDaSessao = querySnapshot.docs.map(d => d.data());
+        indiceAtual = noticiasDaSessao.findIndex(n => n.titulo === data.titulo);
+
+        document.getElementById('modal-noticia-global').style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 };
 
+// Navegação interna do Modal
 window.navegarNoticia = (direcao) => {
     let novoIndice = indiceAtual + direcao;
-    if (novoIndice >= 0 && novoIndice < playlistNoticias.length) {
+    if (novoIndice >= 0 && novoIndice < noticiasDaSessao.length) {
         indiceAtual = novoIndice;
-        preencherModal(playlistNoticias[indiceAtual]);
+        renderizarDados(noticiasDaSessao[indiceAtual]);
     }
 };
 
@@ -107,9 +85,4 @@ window.fecharModalGlobal = () => {
     document.getElementById('modal-noticia-global').style.display = 'none';
     document.getElementById('m-video').src = "";
     document.body.style.overflow = 'auto';
-};
-
-window.onclick = (e) => {
-    const modal = document.getElementById('modal-noticia-global');
-    if (e.target == modal) window.fecharModalGlobal();
 };
