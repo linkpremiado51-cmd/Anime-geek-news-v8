@@ -1,121 +1,146 @@
 /* estilos/modal-pesquisa.css */
 
+/* Overlay com desfoque profundo e elegante */
 #modal-noticia-global {
     display: none;
     position: fixed;
     z-index: 10000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
+    inset: 0;
+    background-color: rgba(10, 10, 10, 0.85); /* Preto profundo */
     overflow-y: auto;
-    backdrop-filter: blur(8px);
-    padding: 20px;
+    backdrop-filter: blur(12px); /* Desfoque mais intenso */
+    padding: 40px 20px;
+    transition: all 0.4s ease;
 }
 
+/* Container principal com design de "Cartão de Crédito Black" */
 #modal-noticia-global .modal-content {
     background: #ffffff; 
     color: #121212;
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 40px;
-    border-radius: 8px;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 60px; /* Mais espaço para "respirar" */
+    border-radius: 4px; /* Bordas mais retas transmitem seriedade */
     position: relative;
     font-family: 'Inter', sans-serif;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+    border-top: 5px solid #ff0000; /* Detalhe premium no topo */
 }
 
+/* Botão Fechar Minimalista */
 #modal-noticia-global .close-modal {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #eee;
-    border: none;
-    width: 32px;
-    height: 32px;
+    top: 25px;
+    right: 25px;
+    background: transparent;
+    border: 1px solid #eee;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    font-size: 18px;
+    font-size: 22px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #333;
-    transition: 0.2s;
+    color: #999;
+    transition: all 0.3s ease;
 }
 
-#modal-noticia-global .close-modal:hover { background: #ddd; }
+#modal-noticia-global .close-modal:hover { 
+    background: #121212; 
+    color: #fff;
+    border-color: #121212;
+    transform: rotate(90deg);
+}
 
+/* Categoria com espaçamento de letra elegante */
 #m-categoria {
-    color: var(--tema-cor, #ff0055); 
-    font-size: 11px; 
-    font-weight: 800; 
+    color: #ff0000; /* Vermelho Executivo */
+    font-size: 10px; 
+    font-weight: 700; 
     text-transform: uppercase; 
-    letter-spacing: 2px; 
-    margin-bottom: 15px; 
+    letter-spacing: 4px; /* Letras bem espaçadas */
+    margin-bottom: 20px; 
     display: flex; 
     align-items: center; 
     gap: 8px;
 }
 
+/* Título Impactante (Estilo New York Times Moderno) */
 #m-titulo {
-    font-size: clamp(26px, 5vw, 40px); 
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(28px, 5vw, 42px); 
     font-weight: 800; 
-    line-height: 1.1; 
-    letter-spacing: -1px; 
-    margin: 0 0 15px 0;
-    color: #121212;
+    line-height: 1.05; 
+    letter-spacing: -1.5px; 
+    margin: 0 0 20px 0;
+    color: #1a1a1a;
 }
 
+/* Resumo com cor suave para melhor leitura */
 #m-resumo {
-    font-size: clamp(16px, 2vw, 18px); 
-    line-height: 1.6; 
-    color: #444; 
-    margin-bottom: 25px;
+    font-size: 18px; 
+    line-height: 1.7; 
+    color: #555; 
+    margin-bottom: 35px;
+    font-weight: 400;
 }
 
+/* Ficha Técnica: Design de Grid Industrial */
 #m-ficha {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 20px; 
-    background: #f8f9fa; 
-    padding: 15px;
-    border-left: 4px solid var(--tema-cor, #ff0055); 
-    margin-bottom: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 30px; 
+    background: #fdfdfd; 
+    padding: 25px;
+    border: 1px solid #f0f0f0; /* Borda fina em vez de fundo sólido */
+    border-left: 4px solid #121212; 
+    margin-bottom: 35px;
 }
 
-.info-item { display: flex; flex-direction: column; gap: 4px; }
-.info-label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #888; }
-.info-valor { font-size: 13px; font-weight: 600; color: #121212; }
+.info-item { display: flex; flex-direction: column; gap: 6px; }
+.info-label { font-size: 9px; text-transform: uppercase; font-weight: 800; color: #aaa; letter-spacing: 1px; }
+.info-valor { font-size: 14px; font-weight: 700; color: #121212; }
 
+/* Vídeo com sombra suave */
 #m-video {
     width: 100%;
     aspect-ratio: 16 / 9;
     border: none;
-    border-radius: 4px;
-    margin-bottom: 25px;
-    display: block;
+    border-radius: 2px;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
+/* BOTÃO EXECUTIVO VERMELHO: O Teste solicitado */
 .btn-ver-artigo-modal { 
     display: inline-flex; 
     align-items: center; 
-    gap: 8px; 
+    justify-content: center;
+    gap: 12px; 
     color: #fff;
-    background: #121212;
+    background: #ff0000; /* Vermelho solicitado */
     text-decoration: none; 
-    font-size: 13px; 
-    font-weight: 800; 
+    font-size: 12px; 
+    font-weight: 900; 
     text-transform: uppercase; 
-    padding: 15px 30px;
-    border-radius: 4px;
+    letter-spacing: 2px;
+    padding: 20px 45px;
+    border-radius: 0px; /* Pontas secas são mais executivas */
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 4px 0px #b30000; /* Sombra sólida inferior */
 }
 
-.btn-ver-artigo-modal:hover { background: var(--tema-cor, #000); }
+.btn-ver-artigo-modal:hover { 
+    background: #121212; /* Inverte para preto no hover */
+    box-shadow: 0 4px 0px #000;
+    transform: translateY(-2px);
+}
 
+/* Ajustes Mobile */
 @media (max-width: 768px) {
-    #m-ficha { grid-template-columns: 1fr 1fr; }
-    #modal-noticia-global .modal-content { padding: 25px 15px; }
+    #modal-noticia-global .modal-content { padding: 40px 20px; margin: 0; border-radius: 0; }
+    #m-ficha { grid-template-columns: 1fr 1fr; gap: 20px; }
+    .btn-ver-artigo-modal { width: 100%; }
 }
