@@ -1,28 +1,31 @@
 /* estilos/modal-pesquisa.css */
 
+/* Overlay - Fundo escuro e desfoque */
 #modal-noticia-global {
     display: none;
     position: fixed;
     inset: 0;
     z-index: 10000;
-    background: #000; /* Fundo preto puro para foco total no conteúdo */
-    overflow: hidden; /* Evita scroll na base */
+    background: #000;
+    overflow: hidden; /* Proibe scroll para manter o foco */
 }
 
+/* Container que simula um App */
 #modal-noticia-global .modal-content {
     width: 100%;
-    height: 100dvh; /* Dynamic Viewport Height para mobile */
-    background: #fff;
+    height: 100dvh; /* Ocupa a altura dinâmica do celular */
+    background: #ffffff;
     display: flex;
     flex-direction: column;
     position: relative;
+    font-family: 'Inter', sans-serif;
 }
 
-/* Área do Vídeo: Ocupa o topo como um "Story" */
-.video-wrapper {
+/* Área do Vídeo: Ocupa o topo (Cabeçalho Visual) */
+.video-header {
     width: 100%;
-    background: #000;
     aspect-ratio: 16 / 9;
+    background: #000;
     position: relative;
 }
 
@@ -30,116 +33,118 @@
     width: 100%;
     height: 100%;
     border: none;
+    display: block;
 }
 
-/* Corpo do Modal: Estilo Bottom Sheet do Google */
-.modal-body-content {
-    flex: 1;
-    padding: 24px;
-    background: #fff;
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
-    margin-top: -20px; /* Sobrepõe o vídeo levemente */
-    position: relative;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-}
-
-/* Botão Fechar: Estilo Android Floating */
+/* Botão Fechar flutuante sobre o vídeo */
 .close-modal {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(5px);
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.5);
     border: none;
-    width: 36px;
-    height: 36px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     color: #fff;
     font-size: 20px;
-    z-index: 100;
     cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Tipografia Google Discover */
+/* Corpo do Modal - Estilo Card Bottom Sheet */
+.modal-body {
+    flex: 1;
+    padding: 25px;
+    margin-top: -20px; /* Sobrepõe levemente o vídeo */
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+}
+
 #m-categoria {
-    color: var(--tema-cor, #ff0055);
-    font-size: 12px;
-    font-weight: 900;
+    color: var(--tema-cor, #ff0000);
+    font-size: 11px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 12px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
 }
 
 #m-titulo {
     font-size: 24px;
     font-weight: 800;
     line-height: 1.2;
-    color: #1a1a1b;
-    margin-bottom: 16px;
-    font-family: 'Inter', sans-serif;
+    color: #121212;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
 }
 
 #m-resumo {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.5;
-    color: #4f4f4f;
+    color: #555;
     margin-bottom: 20px;
-    /* Limita o resumo para não precisar de scroll */
+    /* Garante que o texto não empurre o botão para fora da tela */
     display: -webkit-box;
-    -webkit-line-clamp: 5;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-/* Ficha Técnica: Horizontal e Compacta */
+/* Ficha Técnica: Pills Horizontais (Estilo Google Play) */
 #m-ficha {
     display: flex;
-    gap: 12px;
-    overflow-x: auto; /* Permite scroll horizontal nas infos, comum em apps */
-    padding-bottom: 15px;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
     margin-bottom: 20px;
     scrollbar-width: none;
 }
 #m-ficha::-webkit-scrollbar { display: none; }
 
 .info-item {
-    background: #f1f3f4;
-    padding: 8px 16px;
-    border-radius: 100px;
+    background: #f5f5f5;
+    padding: 8px 15px;
+    border-radius: 50px;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    border: 1px solid #eee;
 }
-.info-label { font-size: 10px; color: #70757a; font-weight: 600; text-transform: uppercase; }
-.info-valor { font-size: 11px; color: #1a1a1b; font-weight: 700; }
+.info-label { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; margin-right: 5px; }
+.info-valor { font-size: 11px; font-weight: 700; color: #121212; }
 
-/* Botão CTA: Ocupa toda a largura no mobile */
+/* BOTÃO VERMELHO EXECUTIVO (FIXO NA BASE) */
 .btn-ver-artigo-modal {
-    margin-top: auto; /* Empurra para o fim da tela */
+    margin-top: auto; /* Empurra para o fim do card */
     background: #ff0000;
     color: #fff;
-    text-align: center;
     text-decoration: none;
-    padding: 18px;
-    border-radius: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
     font-weight: 800;
     font-size: 14px;
     text-transform: uppercase;
-    box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+    letter-spacing: 1px;
+    box-shadow: 0 10px 20px rgba(255, 0, 0, 0.2);
+    transition: 0.3s;
 }
 
-/* Desktop: Mantém centralizado mas com o mesmo estilo limpo */
-@media (min-width: 769px) {
-    #modal-noticia-global { background: rgba(0,0,0,0.85); padding: 40px; }
+.btn-ver-artigo-modal:hover { background: #cc0000; transform: translateY(-2px); }
+
+/* Desktop: Ajuste para não ficar gigante */
+@media (min-width: 768px) {
+    #modal-noticia-global { background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; }
     #modal-noticia-global .modal-content {
-        max-width: 500px; /* Formato de celular no Desktop é tendência */
+        max-width: 450px;
         height: auto;
         max-height: 90vh;
-        margin: auto;
-        border-radius: 30px;
+        border-radius: 25px;
+        overflow: hidden;
     }
 }
