@@ -20,17 +20,31 @@ window.noticiasFirebase = [];
 let linkProcessado = false;
 
 /**
- * Normaliza os dados para garantir que a imagem sempre funcione,
- * não importa se o campo no Firebase se chama 'capa', 'thumb' ou 'imagem'.
+ * Normaliza os dados extraindo a imagem (thumb) e formatando o vídeo.
  */
 function normalizarNoticia(doc, nomeColecao) {
     const data = doc.data();
+    
+    // 1. Lógica de extração da Imagem (Thumb)
+    // Prioridade: Raiz > Primeiro item de Relacionados > Fallback
+    const imagemExtraida = data.thumb || 
+                          (data.relacionados && data.relacionados.length > 0 ? data.relacionados[0].thumb : null) || 
+                          'https://anigeeknews.com/default-og.jpg';
+
+    // 2. Lógica de formatação do Vídeo Principal
+    let videoUrl = data.videoPrincipal || "";
+    if (videoUrl.includes("watch?v=")) {
+        videoUrl = videoUrl.replace("watch?v=", "embed/") + "?autoplay=1&mute=1&modestbranding=1";
+    } else if (videoUrl.includes("youtu.be/")) {
+        videoUrl = videoUrl.replace("youtu.be/", "youtube.com/embed/") + "?autoplay=1&mute=1&modestbranding=1";
+    }
+
     return {
         id: doc.id,
         origem: nomeColecao,
         ...data,
-        // Garante que 'thumb' sempre tenha uma URL válida para a busca e modal
-        thumb: data.thumb || data.capa || data.imagem || 'https://anigeeknews.com/default-og.jpg'
+        thumb: imagemExtraida,
+        videoPrincipal: videoUrl
     };
 }
 
@@ -58,15 +72,17 @@ function sincronizarComBusca(nomeColecao) {
         
         window.noticiasFirebase.push(...novosDados);
         
-        // Reordena por data (se o campo 'data' existir)
+        // Reordena por data
         window.noticiasFirebase.sort((a, b) => (b.data || 0) - (a.data || 0));
 
         if (!linkProcessado) window.verificarGatilhoDeLink();
         
-    }, (error) => console.error("Erro Firebase:", error));
+    }, (error) => console.error(`Erro ao sincronizar ${nomeColecao}:`, error));
 }
 
 const colecoesParaMonitorar = ["noticias", "lancamentos", "analises", "entrevistas", "podcast", "futebol"];
 colecoesParaMonitorar.forEach(nome => sincronizarComBusca(nome));
 
 window.addEventListener('popstate', window.verificarGatilhoDeLink);
+
+console.log("🔥 Firebase Config: Sincronização inteligente com suporte a sub-propriedades ativado.");
