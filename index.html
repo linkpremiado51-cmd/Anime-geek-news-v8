@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AniGeekNews | Jornalismo Geek</title>
     <meta name="description" content="Jornalismo independente sobre cultura pop, animes, games e cinema.">
-
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
@@ -14,221 +14,256 @@
     <link rel="stylesheet" href="estilos/geral.css">
     <link rel="stylesheet" href="estilos/cabecalho-rodape.css">
     <link rel="stylesheet" href="estilos/componentes.css">
+
+    <style>
+        /* Estilos essenciais que estavam na Versão 1 */
+        .filter-tag.config-btn { background: none; border: none; color: var(--text-muted); font-size: 16px; padding: 5px; display: flex; align-items: center; justify-content: center; min-width: 36px; border-radius: 4px; cursor: pointer; }
+        #modal-secoes { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
+        #modal-secoes > div { background: var(--bg); color: var(--text-main); padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; }
+        #lista-secoes-config div { display: flex; align-items: center; margin-bottom: 10px; }
+        #lista-secoes-config label { margin-left: 8px; cursor: pointer; font-size: 14px; }
+    </style>
 </head>
-
 <body>
+    <div id="progress-bar"></div>
+    
+    <div id="megaMenuContainer"></div>
 
-<div id="progress-bar"></div>
+    <div class="sticky-header-group">
+        <header>
+            <div class="nav-container">
+                <a href="./index.html" class="logo">AniGeeknews.com<span></span></a>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="#">Animes</a></li>
+                    <li class="nav-item"><a href="#">Games</a></li>
+                    <li class="nav-item"><a href="#">Mangás</a></li>
+                    <li class="nav-item" id="area-usuario"><span>Aguardando...</span></li>
+                </ul>
+                <button class="menu-toggle" onclick="window.abrirMegaMenu && window.abrirMegaMenu()" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
 
-<!-- CONTAINER DO MEGA MENU -->
-<div id="megaMenuContainer"></div>
-
-<div class="sticky-header-group">
-    <header>
-        <div class="nav-container">
-            <a href="./index.html" class="logo">AniGeeknews.com<span></span></a>
-
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="#">Animes</a></li>
-                <li class="nav-item"><a href="#">Games</a></li>
-                <li class="nav-item"><a href="#">Mangás</a></li>
-                <!-- ÁREA DO USUÁRIO -->
-                <li class="nav-item" id="area-usuario">
-                    <span>Aguardando...</span>
-                </li>
-            </ul>
-
-            <button class="menu-toggle" onclick="abrirMegaMenu()" aria-label="Abrir menu">
-                <i class="fas fa-bars"></i>
-            </button>
+        <div class="search-bar-wrapper">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="input-busca-global" placeholder="Pesquisar notícias, animes ou análises..." autocomplete="off">
+            </div>
+            <div id="search-results-surface"></div>
         </div>
-    </header>
 
-    <div class="search-bar-wrapper">
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-                type="text"
-                id="input-busca-global"
-                placeholder="Pesquisar notícias, animes ou análises..."
-                autocomplete="off"
-            >
-        </div>
-        <div id="search-results-surface"></div>
+        <div class="filter-scroller" id="filterScroller"></div>
     </div>
 
-    <div class="filter-scroller" id="filterScroller"></div>
-</div>
+    <main id="dynamic-content">
+        <section class="hero">
+            <div id="conteudo_de_destaque">
+                <p style="text-align:center; padding-top:100px; color:var(--text-muted);">Iniciando portal...</p>
+            </div>
+        </section>
 
-<main id="dynamic-content">
-    <section class="hero">
-        <div id="conteudo_de_destaque">
-            <p style="text-align:center; padding-top:100px; color:var(--text-muted);">
-                Iniciando portal...
-            </p>
+        <div class="newsletter-card">
+            <h3>Briefing Matinal</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Curadoria das notícias mais importantes.</p>
+            <input type="email" placeholder="seu@email.com" style="width:100%; padding:10px; margin:10px 0; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
+            <button style="width:100%; padding:12px; background:var(--text-main); color:var(--bg); border:none; cursor:pointer; font-weight:bold;">ASSINAR BRIEFING</button>
         </div>
-    </section>
+    </main>
 
-    <div class="newsletter-card">
-        <h3>Briefing Matinal</h3>
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">
-            Curadoria das notícias mais importantes.
-        </p>
+    <footer>
+        <div style="max-width:var(--container-w); margin: 0 auto;">
+            <a href="./index.html" class="logo" style="font-size: 20px;">AniGeek<span>News</span></a>
+            <p style="margin-top: 10px;">© 2025 AniGeekNews. Jornalismo Geek Independente.</p>
+        </div>
+    </footer>
 
-        <input
-            type="email"
-            placeholder="seu@email.com"
-            style="width:100%; padding:10px; margin:10px 0; border:1px solid var(--border); background:var(--bg); color:var(--text-main);"
-        >
-
-        <button
-            style="width:100%; padding:12px; background:var(--text-main); color:var(--bg); border:none; cursor:pointer; font-weight:bold;"
-        >
-            ASSINAR BRIEFING
-        </button>
-    </div>
-</main>
-
-<footer>
-    <div style="max-width:var(--container-w); margin:0 auto;">
-        <a href="./index.html" class="logo" style="font-size:20px;">AniGeek<span>News</span></a>
-        <p style="margin-top:10px;">© 2025 AniGeekNews. Jornalismo Geek Independente.</p>
-    </div>
-</footer>
-
-<!-- ================= MODAL COMPLETO ================= -->
-<div id="modal-noticia-global" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; overflow-y:auto; backdrop-filter: blur(8px);">
-    <div id="modal-conteudo-interno" style="background: var(--bg, #fff); color: var(--text-main, #121212); max-width: 900px; margin: 20px auto; padding: 25px; border-radius: 12px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
-        <button onclick="window.fecharModalGlobal()" style="position: absolute; top: 15px; right: 15px; border: none; background: rgba(0,0,0,0.05); width: 35px; height: 35px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
-
-        <div id="m-categoria" style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;"></div>
-        <h2 id="m-titulo" style="font-size: clamp(22px, 5vw, 36px); font-weight: 850; margin: 0 0 15px 0; line-height: 1.2;"></h2>
-        <p id="m-resumo" style="font-size: 16px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;"></p>
-
-        <div id="m-ficha" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
-
-        <iframe id="m-video" style="width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px;" allowfullscreen></iframe>
-
-        <div style="margin-top: 25px; text-align: center;">
-            <a id="m-link" href="#" target="_blank" style="display: inline-block; padding: 12px 25px; background: var(--text-main); color: var(--bg); text-decoration: none; font-weight: 700; border-radius: 4px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Ver Artigo Completo</a>
+    <div id="modal-noticia-global" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; overflow-y:auto; backdrop-filter: blur(8px);">
+        <div id="modal-conteudo-interno" style="background: var(--bg, #fff); color: var(--text-main, #121212); max-width: 900px; margin: 20px auto; padding: 25px; border-radius: 12px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+            <button onclick="window.fecharModalGlobal()" style="position: absolute; top: 15px; right: 15px; border: none; background: rgba(0,0,0,0.05); width: 35px; height: 35px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+            <div id="m-categoria" style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;"></div>
+            <h2 id="m-titulo" style="font-size: clamp(22px, 5vw, 36px); font-weight: 850; margin: 0 0 15px 0; line-height: 1.2;"></h2>
+            <p id="m-resumo" style="font-size: 16px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;"></p>
+            <div id="m-ficha" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
+            <iframe id="m-video" style="width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px;" allowfullscreen></iframe>
+            <div style="margin-top: 25px; text-align: center;">
+                <a id="m-link" href="#" target="_blank" style="display: inline-block; padding: 12px 25px; background: var(--text-main); color: var(--bg); text-decoration: none; font-weight: 700; border-radius: 4px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Ver Artigo Completo</a>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- ================= SCRIPTS ================= -->
+    <div id="modal-secoes">
+        <div>
+            <h3 style="margin-top:0; font-size:18px;">Escolha suas seções</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Selecione quais abas deseja ver:</p>
+            <div id="lista-secoes-config"></div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button onclick="salvarPreferenciasSecoes()" style="flex:1; padding:10px; background:var(--primary, #e63946); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Salvar</button>
+                <button onclick="fecharModalSecoes()" style="flex:1; padding:10px; background:#eee; color:#333; border:none; border-radius:4px; cursor:pointer;">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
-<!-- Firebase -->
-<script type="module" src="scripts/config-firebase.js"></script>
-<script type="module" src="scripts/auth.js"></script>
-<script type="module" src="scripts/tema.js"></script>
-<script type="module" src="scripts/navegacao.js"></script>
-<script type="module" src="scripts/busca.js"></script>
-<script src="scripts/recomendacao-secao.js"></script>
+    <script type="module" src="scripts/config-firebase.js"></script>
+    <script type="module" src="scripts/auth.js"></script>
+    <script type="module" src="scripts/tema.js"></script>
+    <script type="module" src="scripts/navegacao.js"></script>
+    <script type="module" src="scripts/busca.js"></script>
+    <script src="scripts/recomendacao-secao.js"></script>
 
-<!-- Mega Menu -->
-<script type="module">
-    import { inicializarMegaMenu } from './menu/menu.js';
-    inicializarMegaMenu();
-</script>
+    <script type="module">
+        import { inicializarMegaMenu } from './menu/menu.js';
+        inicializarMegaMenu();
+    </script>
 
-<!-- Modal completo -->
-<script>
-    window.abrirModalNoticia = (noticia) => {
-        const modal = document.getElementById('modal-noticia-global');
-        if (!modal) return;
+    <script>
+        window.abrirModalNoticia = (noticia) => {
+            const modal = document.getElementById('modal-noticia-global');
+            if (!modal) return;
 
-        document.getElementById('m-categoria').innerText = noticia.categoria || "Geek";
-        document.getElementById('m-categoria').style.color = noticia.cor || "var(--primary)";
-        document.getElementById('m-titulo').innerText = noticia.titulo;
-        document.getElementById('m-resumo').innerText = noticia.resumo || "";
-        document.getElementById('m-video').src = noticia.videoPrincipal || "";
-        document.getElementById('m-link').href = noticia.linkArtigo || "#";
+            // Preenche dados básicos
+            document.getElementById('m-categoria').innerText = noticia.categoria || "Geek";
+            document.getElementById('m-categoria').style.color = noticia.cor || "var(--primary)";
+            document.getElementById('m-titulo').innerText = noticia.titulo;
+            document.getElementById('m-resumo').innerText = noticia.resumo || "";
+            document.getElementById('m-video').src = noticia.videoPrincipal || "";
+            document.getElementById('m-link').href = noticia.linkArtigo || "#";
 
-        const fichaContainer = document.getElementById('m-ficha');
-        if (noticia.ficha && noticia.ficha.length > 0) {
-            fichaContainer.style.display = 'grid';
-            fichaContainer.innerHTML = noticia.ficha.map(item => `
-                <div style="border-left: 3px solid ${noticia.cor || '#eee'}; padding-left: 10px;">
-                    <div style="font-size: 9px; text-transform: uppercase; font-weight: 800; opacity: 0.5;">${item.label}</div>
-                    <div style="font-size: 13px; font-weight: 700;">${item.valor}</div>
-                </div>
-            `).join('');
-        } else {
-            fichaContainer.style.display = 'none';
+            // Preenche Ficha Técnica
+            const fichaContainer = document.getElementById('m-ficha');
+            if (noticia.ficha && noticia.ficha.length > 0) {
+                fichaContainer.style.display = 'grid';
+                fichaContainer.innerHTML = noticia.ficha.map(item => `
+                    <div style="border-left: 3px solid ${noticia.cor || '#eee'}; padding-left: 10px;">
+                        <div style="font-size: 9px; text-transform: uppercase; font-weight: 800; opacity: 0.5;">${item.label}</div>
+                        <div style="font-size: 13px; font-weight: 700;">${item.valor}</div>
+                    </div>
+                `).join('');
+            } else {
+                fichaContainer.style.display = 'none';
+            }
+
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            // Atualiza URL sem dar refresh (essencial para o busca.js)
+            if(noticia.id) {
+                const url = new URL(window.location);
+                url.searchParams.set('id', noticia.id);
+                window.history.pushState({}, '', url);
+            }
+        };
+
+        window.fecharModalGlobal = () => {
+            const modal = document.getElementById('modal-noticia-global');
+            modal.style.display = 'none';
+            document.getElementById('m-video').src = "";
+            document.body.style.overflow = 'auto';
+            
+            const url = new URL(window.location);
+            url.searchParams.delete('id');
+            window.history.pushState({}, '', url);
+        };
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal-noticia-global');
+            if (event.target == modal) window.fecharModalGlobal();
+        };
+    </script>
+
+    <script>
+        const SECOES_DISPONIVEIS = [
+            { id: 'manchetes', nome: 'Manchetes' },
+            { id: 'analises', nome: 'Análises' },
+            { id: 'entrevistas', nome: 'Entrevistas' },
+            { id: 'lancamentos', nome: 'Lançamentos' },
+            { id: 'podcast', nome: 'Podcast' },
+            { id: 'futebol', nome: 'Futebol' }
+        ];
+
+        const CHAVE_SECOES = 'pref_secoes_visiveis';
+
+        function getPreferenciasSecoes() {
+            const salvo = localStorage.getItem(CHAVE_SECOES);
+            if (salvo) {
+                try {
+                    const parsed = JSON.parse(salvo);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                } catch (e) { console.warn("Erro ao ler preferências"); }
+            }
+            return SECOES_DISPONIVEIS.map(s => s.id);
         }
 
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-
-        // Atualiza URL e dispara gatilho de link
-        const url = new URL(window.location);
-        url.searchParams.set('id', noticia.id || '');
-        window.history.pushState({ id: noticia.id }, '', url);
-
-        if (typeof window.verificarGatilhoDeLink === 'function') {
-            setTimeout(() => {
-                window.verificarGatilhoDeLink();
-            }, 50);
+        function salvarPreferenciasSecoes() {
+            const checkboxes = document.querySelectorAll('#lista-secoes-config input[type="checkbox"]');
+            const selecionadas = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            if (selecionadas.length === 0) { alert("Mantenha ao menos uma seção."); return; }
+            localStorage.setItem(CHAVE_SECOES, JSON.stringify(selecionadas));
+            fecharModalSecoes();
+            renderizarFiltrosDinamicos();
         }
-    };
 
-    window.fecharModalGlobal = () => {
-        const modal = document.getElementById('modal-noticia-global');
-        if (!modal) return;
-
-        modal.style.display = 'none';
-        document.getElementById('m-video').src = "";
-        document.body.style.overflow = 'auto';
-
-        const url = new URL(window.location);
-        url.searchParams.delete('id');
-        window.history.pushState({}, '', url);
-    };
-
-    document.addEventListener('click', (e) => {
-        const modal = document.getElementById('modal-noticia-global');
-        if (modal && e.target === modal) window.fecharModalGlobal();
-    });
-</script>
-
-<!-- Listener global usuário -->
-<script>
-(function () {
-    function aplicarEstadoUsuario(user) {
-        const areaUsuario = document.getElementById("area-usuario");
-        if (!areaUsuario) return;
-
-        if (user) {
-            areaUsuario.innerHTML = `
-                <div class="usuario-logado">
-                    <span class="usuario-nome">${user.nome || "Usuário"}</span>
-                    <button class="logout-btn" onclick="window.logoutAniGeek && window.logoutAniGeek()">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </div>
-            `;
-        } else {
-            areaUsuario.innerHTML = `
-                <a href="acesso.html" class="link-login">
-                    Entrar / Criar conta
-                </a>
-            `;
+        function fecharModalSecoes() { document.getElementById('modal-secoes').style.display = 'none'; }
+        
+        function abrirModalSecoes() {
+            const preferencias = new Set(getPreferenciasSecoes());
+            const container = document.getElementById('lista-secoes-config');
+            container.innerHTML = '';
+            SECOES_DISPONIVEIS.forEach(secao => {
+                const div = document.createElement('div');
+                div.innerHTML = `<input type="checkbox" id="chk-${secao.id}" value="${secao.id}" ${preferencias.has(secao.id) ? 'checked' : ''}>
+                                 <label for="chk-${secao.id}">${secao.nome}</label>`;
+                container.appendChild(div);
+            });
+            document.getElementById('modal-secoes').style.display = 'flex';
         }
-    }
 
-    if (window.AniGeekUser !== undefined) {
-        aplicarEstadoUsuario(window.AniGeekUser);
-    }
+        function renderizarFiltrosDinamicos() {
+            const container = document.getElementById('filterScroller');
+            if (!container) return;
+            const preferenciasSet = new Set(getPreferenciasSecoes());
+            container.innerHTML = '';
 
-    document.addEventListener("user:login", (e) => {
-        aplicarEstadoUsuario(e.detail);
-    });
+            SECOES_DISPONIVEIS.forEach(secao => {
+                if (preferenciasSet.has(secao.id)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-tag';
+                    btn.textContent = secao.nome;
+                    btn.onclick = () => {
+                        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                        btn.classList.add('active');
+                        if (window.carregarSecao) window.carregarSecao(secao.id);
+                    };
+                    container.appendChild(btn);
+                }
+            });
 
-    document.addEventListener("user:logout", () => {
-        aplicarEstadoUsuario(null);
-    });
-})();
-</script>
+            const btnConfig = document.createElement('button');
+            btnConfig.className = 'filter-tag config-btn';
+            btnConfig.innerHTML = '<i class="fas fa-cog"></i>';
+            btnConfig.onclick = abrirModalSecoes;
+            container.appendChild(btnConfig);
+        }
 
+        document.addEventListener('DOMContentLoaded', renderizarFiltrosDinamicos);
+    </script>
+
+    <script>
+        (function () {
+            function aplicarEstadoUsuario(user) {
+                const areaUsuario = document.getElementById("area-usuario");
+                if (!areaUsuario) return;
+                if (user) {
+                    areaUsuario.innerHTML = `<div class="usuario-logado"><span class="usuario-nome">${user.nome || "Usuário"}</span>
+                        <button class="logout-btn" onclick="window.logoutAniGeek && window.logoutAniGeek()"><i class="fa-solid fa-right-from-bracket"></i></button></div>`;
+                } else {
+                    areaUsuario.innerHTML = `<a href="acesso.html" class="link-login">Entrar / Criar conta</a>`;
+                }
+            }
+            if (window.AniGeekUser !== undefined) aplicarEstadoUsuario(window.AniGeekUser);
+            document.addEventListener("user:login", (e) => aplicarEstadoUsuario(e.detail));
+            document.addEventListener("user:logout", () => aplicarEstadoUsuario(null));
+        })();
+    </script>
 </body>
 </html>
