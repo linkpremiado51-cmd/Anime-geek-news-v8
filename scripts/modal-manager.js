@@ -1,6 +1,6 @@
 /* scripts/modal-manager.js */
 
-let noticiasDaSessao = []; 
+let noticiasDaSessao = [];
 let indiceAtual = 0;
 
 const estruturaHTML = `
@@ -13,7 +13,10 @@ const estruturaHTML = `
         <div class="modal-body">
             <div id="m-categoria"></div>
             <h2 id="m-titulo"></h2>
-            <div id="m-ficha"></div>
+            <div id="m-ficha">
+                <div id="m-ficha-content"></div>
+                <button id="toggle-ficha" class="toggle-ficha-btn">▲ Mostrar mais</button>
+            </div>
             <p id="m-resumo"></p>
         </div>
         <div class="modal-nav-footer">
@@ -33,15 +36,12 @@ if (!document.getElementById('modal-noticia-global')) {
 }
 
 /**
- * Atualiza as Meta Tags para SEO dinamico e Título da Aba
+ * Atualiza as Meta Tags para SEO dinâmico e Título da Aba
  */
 const atualizarSEO = (noticia) => {
-    // 1. Atualiza o título da aba do navegador
     document.title = `${noticia.titulo} | AniGeekNews`;
-
-    // 2. Função auxiliar para atualizar ou criar meta tags
     const setMeta = (property, content) => {
-        let el = document.querySelector(`meta[property="${property}"]`) || 
+        let el = document.querySelector(`meta[property="${property}"]`) ||
                  document.querySelector(`meta[name="${property}"]`);
         if (!el) {
             el = document.createElement('meta');
@@ -50,8 +50,6 @@ const atualizarSEO = (noticia) => {
         }
         el.setAttribute('content', content);
     };
-
-    // 3. Tags Open Graph (Facebook/Instagram/WhatsApp) e Twitter
     setMeta('og:title', noticia.titulo);
     setMeta('og:description', noticia.resumo ? noticia.resumo.substring(0, 160) : "");
     setMeta('og:image', noticia.thumb);
@@ -73,41 +71,55 @@ const renderizarDadosNoModal = (noticia) => {
     document.getElementById('m-titulo').innerText = noticia.titulo;
     document.getElementById('m-resumo').innerText = noticia.resumo || "";
     document.getElementById('m-link').href = noticia.linkArtigo || "#";
-
-    // O vídeo já vem formatado pelo config-firebase.js (normalizarNoticia)
     document.getElementById('m-video').src = noticia.videoPrincipal;
 
-    const fichaContainer = document.getElementById('m-ficha');
+    const fichaContainer = document.getElementById('m-ficha-content');
+    const toggleButton = document.getElementById('toggle-ficha');
+
     if (noticia.ficha && noticia.ficha.length > 0) {
-        fichaContainer.style.display = 'grid';
         fichaContainer.innerHTML = noticia.ficha.map(item => `
             <div class="info-item">
                 <span class="info-label">${item.label}</span>
                 <span class="info-valor">${item.valor}</span>
             </div>
         `).join('');
+        document.getElementById('m-ficha').style.display = 'block';
     } else {
-        fichaContainer.style.display = 'none';
+        document.getElementById('m-ficha').style.display = 'none';
     }
-    
+
     // Atualiza a URL e o SEO
     const url = new URL(window.location);
     url.searchParams.set('id', noticia.id);
     window.history.pushState({}, '', url);
-    
+
     atualizarSEO(noticia);
+
+    // Lógica para colapsar/expandir a ficha
+    toggleButton.onclick = () => {
+        const ficha = document.getElementById('m-ficha');
+        if (ficha.classList.contains('collapsed')) {
+            ficha.classList.remove('collapsed');
+            ficha.classList.add('expanded');
+            toggleButton.textContent = '▼ Mostrar menos';
+        } else {
+            ficha.classList.remove('expanded');
+            ficha.classList.add('collapsed');
+            toggleButton.textContent = '▲ Mostrar mais';
+        }
+    };
 };
 
 window.abrirModalNoticia = (noticia) => {
     if (!noticia) return;
     const modal = document.getElementById('modal-noticia-global');
-    
     noticiasDaSessao = (window.noticiasFirebase || []).filter(n => n.origem === noticia.origem);
     indiceAtual = noticiasDaSessao.findIndex(n => n.id === noticia.id);
-
     renderizarDadosNoModal(noticia);
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+    // Inicia colapsado
+    document.getElementById('m-ficha').classList.add('collapsed');
 };
 
 window.navegarNoticia = (direcao) => {
@@ -123,10 +135,7 @@ window.fecharModalGlobal = () => {
     modal.style.display = 'none';
     document.getElementById('m-video').src = "";
     document.body.style.overflow = 'auto';
-
-    // Restaura o título padrão do site
     document.title = "AniGeekNews | Jornalismo Geek";
-
     const url = new URL(window.location);
     url.searchParams.delete('id');
     window.history.pushState({}, '', url);
