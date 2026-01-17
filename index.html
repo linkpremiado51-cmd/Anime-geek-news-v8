@@ -16,7 +16,26 @@
     <link rel="stylesheet" href="estilos/componentes.css">
     <link rel="stylesheet" href="estilos/modal-pesquisa.css">
 
-    <!-- Global Error Handler -->
+    <style>
+        /* Estilos de suporte ao sistema de Cache do navegação.js */
+        .secao-container-cache {
+            width: 100%;
+            animation: fadeInSecao 0.4s ease-out;
+        }
+
+        @keyframes fadeInSecao {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Garante que o container de destaque mantenha o fluxo correto */
+        #conteudo_de_destaque {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+    </style>
+
     <script src="global-error-handler.js" defer></script>
 </head>
 
@@ -66,7 +85,6 @@
     </div>
 </footer>
 
-<!-- Scripts principais -->
 <script type="module" src="scripts/config-firebase.js"></script>
 <script type="module" src="scripts/auth.js"></script>
 <script type="module" src="scripts/tema.js"></script>
