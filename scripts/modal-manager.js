@@ -4,10 +4,13 @@ let noticiasDaSessao = [];
 let indiceAtual = 0;
 
 const estruturaHTML = `
-<div id="modal-noticia-global">
+<div id="modal-noticia-global" style="display:none;">
     <div class="modal-content">
         <div class="video-header">
-            <iframe id="m-video" src="" allow="autoplay; fullscreen"></iframe>
+            <div id="video-placeholder" style="display:none; width:100%; height:100%; background:#000; align-items:center; justify-content:center; color:#555;">
+                <i class="fa-solid fa-play-circle" style="font-size:40px;"></i>
+            </div>
+            <iframe id="m-video" src="" allow="autoplay; fullscreen" frameborder="0"></iframe>
             <button class="close-modal-btn" onclick="window.fecharModalGlobal()">×</button>
         </div>
         <div class="modal-body">
@@ -17,41 +20,42 @@ const estruturaHTML = `
             <p id="m-resumo"></p>
         </div>
         <div class="modal-nav-footer">
-            <button class="btn-nav" onclick="window.navegarNoticia(-1)">
+            <button class="btn-nav" id="btn-prev" onclick="window.navegarNoticia(-1)">
                 <i class="fa-solid fa-chevron-left"></i> Anterior
             </button>
             <a id="m-link" target="_blank" class="btn-ver-artigo-modal">ABRIR MATÉRIA</a>
-            <button class="btn-nav" onclick="window.navegarNoticia(1)">
+            <button class="btn-nav" id="btn-next" onclick="window.navegarNoticia(1)">
                 Próxima <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
     </div>
 </div>`;
 
+// Injeção segura do HTML
 if (!document.getElementById('modal-noticia-global')) {
     document.body.insertAdjacentHTML('beforeend', estruturaHTML);
 }
 
 /**
- * Atualiza as Meta Tags para SEO dinamico e Título da Aba
+ * Atualiza as Meta Tags para SEO dinâmico
  */
 const atualizarSEO = (noticia) => {
-    // 1. Atualiza o título da aba do navegador
+    if(!noticia) return;
     document.title = `${noticia.titulo} | AniGeekNews`;
 
-    // 2. Função auxiliar para atualizar ou criar meta tags
     const setMeta = (property, content) => {
+        if(!content) return;
         let el = document.querySelector(`meta[property="${property}"]`) || 
                  document.querySelector(`meta[name="${property}"]`);
         if (!el) {
             el = document.createElement('meta');
-            el.setAttribute('property', property);
+            // Algumas tags usam 'property' (OG), outras 'name' (Twitter/Meta)
+            el.setAttribute(property.includes('og:') ? 'property' : 'name', property);
             document.head.appendChild(el);
         }
         el.setAttribute('content', content);
     };
 
-    // 3. Tags Open Graph (Facebook/Instagram/WhatsApp) e Twitter
     setMeta('og:title', noticia.titulo);
     setMeta('og:description', noticia.resumo ? noticia.resumo.substring(0, 160) : "");
     setMeta('og:image', noticia.thumb);
@@ -60,25 +64,35 @@ const atualizarSEO = (noticia) => {
 };
 
 /**
- * Renderiza os dados no Modal
+ * Renderiza os dados no Modal com tratamento de erros
  */
 const renderizarDadosNoModal = (noticia) => {
     if (!noticia) return;
 
-    const cor = noticia.cor || "#ff0000";
     const modal = document.getElementById('modal-noticia-global');
-    modal.style.setProperty('--tema-cor', cor);
+    const iframe = document.getElementById('m-video');
+    const placeholder = document.getElementById('video-placeholder');
+    
+    modal.style.setProperty('--tema-cor', noticia.cor || "#ff0000");
 
     document.getElementById('m-categoria').innerText = noticia.categoria || "GEEK";
     document.getElementById('m-titulo').innerText = noticia.titulo;
     document.getElementById('m-resumo').innerText = noticia.resumo || "";
     document.getElementById('m-link').href = noticia.linkArtigo || "#";
 
-    // O vídeo já vem formatado pelo config-firebase.js (normalizarNoticia)
-    document.getElementById('m-video').src = noticia.videoPrincipal;
+    // Lógica de Vídeo: Se não houver vídeo, esconde o iframe e mostra um placeholder ou fundo preto
+    if (noticia.videoPrincipal && noticia.videoPrincipal !== "") {
+        iframe.style.display = 'block';
+        placeholder.style.display = 'none';
+        iframe.src = noticia.videoPrincipal;
+    } else {
+        iframe.style.display = 'none';
+        placeholder.style.display = 'flex';
+        iframe.src = "";
+    }
 
     const fichaContainer = document.getElementById('m-ficha');
-    if (noticia.ficha && noticia.ficha.length > 0) {
+    if (noticia.ficha && Array.isArray(noticia.ficha) && noticia.ficha.length > 0) {
         fichaContainer.style.display = 'grid';
         fichaContainer.innerHTML = noticia.ficha.map(item => `
             <div class="info-item">
@@ -90,11 +104,10 @@ const renderizarDadosNoModal = (noticia) => {
         fichaContainer.style.display = 'none';
     }
     
-    // Atualiza a URL e o SEO
-    const url = new URL(window.location);
-    url.searchParams.set('id', noticia.id);
-    window.history.pushState({}, '', url);
-    
+    // Atualiza Navegação (Desativa botões se não houver mais notícias)
+    document.getElementById('btn-prev').style.opacity = indiceAtual === 0 ? "0.3" : "1";
+    document.getElementById('btn-next').style.opacity = indiceAtual === noticiasDaSessao.length - 1 ? "0.3" : "1";
+
     atualizarSEO(noticia);
 };
 
@@ -102,12 +115,25 @@ window.abrirModalNoticia = (noticia) => {
     if (!noticia) return;
     const modal = document.getElementById('modal-noticia-global');
     
-    noticiasDaSessao = (window.noticiasFirebase || []).filter(n => n.origem === noticia.origem);
+    // Busca notícias da mesma origem para o carrossel
+    const bancoGlobal = window.noticiasFirebase || [];
+    noticiasDaSessao = bancoGlobal.filter(n => n.origem === noticia.origem);
+    
+    // Se não achar nada na mesma origem, usa o banco global como fallback
+    if(noticiasDaSessao.length === 0) noticiasDaSessao = bancoGlobal;
+
     indiceAtual = noticiasDaSessao.findIndex(n => n.id === noticia.id);
+    if(indiceAtual === -1) indiceAtual = 0;
 
     renderizarDadosNoModal(noticia);
+    
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+
+    // Atualiza URL sem recarregar a página
+    const url = new URL(window.location);
+    url.searchParams.set('id', noticia.id);
+    window.history.pushState({ modalOpen: true }, '', url);
 };
 
 window.navegarNoticia = (direcao) => {
@@ -115,19 +141,35 @@ window.navegarNoticia = (direcao) => {
     if (novoIndice >= 0 && novoIndice < noticiasDaSessao.length) {
         indiceAtual = novoIndice;
         renderizarDadosNoModal(noticiasDaSessao[indiceAtual]);
+        
+        // Atualiza a URL para a nova notícia navegada
+        const url = new URL(window.location);
+        url.searchParams.set('id', noticiasDaSessao[indiceAtual].id);
+        window.history.replaceState({ modalOpen: true }, '', url);
     }
 };
 
 window.fecharModalGlobal = () => {
     const modal = document.getElementById('modal-noticia-global');
+    if(!modal) return;
+
     modal.style.display = 'none';
     document.getElementById('m-video').src = "";
     document.body.style.overflow = 'auto';
 
-    // Restaura o título padrão do site
     document.title = "AniGeekNews | Jornalismo Geek";
 
     const url = new URL(window.location);
-    url.searchParams.delete('id');
-    window.history.pushState({}, '', url);
+    if (url.searchParams.has('id')) {
+        url.searchParams.delete('id');
+        window.history.pushState({}, '', url);
+    }
 };
+
+// BUG FIX: Fecha o modal se o usuário clicar no botão "Voltar" do celular/navegador
+window.addEventListener('popstate', (event) => {
+    const modal = document.getElementById('modal-noticia-global');
+    if (modal && modal.style.display === 'block') {
+        window.fecharModalGlobal();
+    }
+});
