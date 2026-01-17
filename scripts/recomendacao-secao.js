@@ -530,42 +530,11 @@ const styles = `
     opacity: 1;
   }
 
-  /* --- TOAST NOTIFICATION (Substituto do Alert) --- */
-  #ag-toast-container {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 99999;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
 
-  .ag-toast {
-    background: rgba(30, 30, 30, 0.95);
-    color: #fff;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 600;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    backdrop-filter: blur(5px);
-    opacity: 0;
-    transform: translateY(20px);
-    animation: agSlideUp 0.3s forwards;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .ag-toast.error { border-left: 4px solid #ff4444; }
-  .ag-toast.success { border-left: 4px solid #00C851; }
+function showToast(message, type = 'normal') {
+  // Silenciado: nada será exibido na tela
+}
 
-  @keyframes agSlideUp {
-    to { opacity: 1; transform: translateY(0); }
-  }
   
   @keyframes agFadeOut {
     to { opacity: 0; transform: translateY(-10px); }
@@ -646,28 +615,8 @@ const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-/* ===========================
-   SISTEMA DE TOAST (NOTIFICAÇÃO)
-=========================== */
 function showToast(message, type = 'normal') {
-  let container = document.getElementById('ag-toast-container');
-  if(!container) {
-    container = document.createElement('div');
-    container.id = 'ag-toast-container';
-    document.body.appendChild(container);
-  }
-
-  const toast = document.createElement('div');
-  toast.className = `ag-toast ${type}`;
-  toast.innerHTML = message;
-  
-  container.appendChild(toast);
-
-  // Remove após 3 segundos
-  setTimeout(() => {
-    toast.style.animation = 'agFadeOut 0.3s forwards';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  // Silenciado
 }
 
 /* ===========================
