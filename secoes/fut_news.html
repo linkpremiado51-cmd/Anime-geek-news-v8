@@ -316,11 +316,7 @@
 
     // --- FIREBASE LISTENERS ---
     function carregarTudoRealTime() {
-<<<<<<< HEAD
-      const q = collection(db, "comunidade_ent");
-=======
       const q = collection(db, "noticias");
->>>>>>> 0ab06cc (Cria HTML para todas as seções e sub-seções do sistema)
       onSnapshot(q, (snapshot) => {
         const noticiasFB = [];
         snapshot.forEach((doc) => {
