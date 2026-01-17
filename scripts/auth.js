@@ -1,6 +1,6 @@
 /* scripts/auth.js */
 /* UI GLOBAL — SEM Firebase */
-registerModule('auth', 'Autenticação de usuário');
+
 
 (function () {
 
