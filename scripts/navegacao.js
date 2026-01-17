@@ -1,7 +1,11 @@
 /* scripts/navegacao.js */
 
-
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
+
+/**
+ * Cache para armazenar os containers das seções já carregadas
+ */
+const cacheSecoes = {};
 
 /**
  * Abre a notícia garantindo que o motor de renderização da seção seja injetado corretamente.
@@ -141,12 +145,32 @@ function gerenciarCSSDaSecao(nome) {
 }
 
 /**
- * Carrega dinamicamente o feed de uma seção
+ * Carrega dinamicamente o feed de uma seção com persistência (Cache)
  */
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
-    displayPrincipal.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); opacity: 0.5;">SINCRONIZANDO...</div>';
+    // 1. Oculta todas as seções carregadas anteriormente no cache
+    Object.values(cacheSecoes).forEach(el => {
+        el.style.display = 'none';
+    });
+
+    // 2. Se a seção já existe no cache, apenas mostra ela
+    if (cacheSecoes[nome]) {
+        gerenciarCSSDaSecao(nome);
+        cacheSecoes[nome].style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
+    // 3. Se não existe, cria o container e faz o fetch
+    // Remove qualquer conteúdo residual que não seja do cache (como mensagens de erro ou loaders fixos)
+    if (Object.keys(cacheSecoes).length === 0) displayPrincipal.innerHTML = '';
+    
+    const tempLoader = document.createElement('div');
+    tempLoader.id = "loader-sinc";
+    tempLoader.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); opacity: 0.5;">SINCRONIZANDO...</div>';
+    displayPrincipal.appendChild(tempLoader);
     
     try {
         gerenciarCSSDaSecao(nome);
@@ -155,10 +179,22 @@ async function carregarSecao(nome) {
         if (!response.ok) throw new Error("Arquivo não encontrado.");
         
         const html = await response.text();
-        displayPrincipal.innerHTML = html;
+        
+        // Criar o wrapper da seção para o cache
+        const secaoWrapper = document.createElement('div');
+        secaoWrapper.id = `secao-cache-${nome}`;
+        secaoWrapper.className = 'secao-container-cache';
+        secaoWrapper.innerHTML = html;
+        
+        // Remove loader e adiciona a nova seção
+        tempLoader.remove();
+        displayPrincipal.appendChild(secaoWrapper);
 
-        // Re-executa os scripts da seção para renderizar os dados do Firebase
-        const scripts = displayPrincipal.querySelectorAll("script");
+        // Registra no cache
+        cacheSecoes[nome] = secaoWrapper;
+
+        // Re-executa os scripts da seção APENAS na primeira vez
+        const scripts = secaoWrapper.querySelectorAll("script");
         scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
             newScript.type = oldScript.type || "text/javascript";
@@ -170,7 +206,10 @@ async function carregarSecao(nome) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (err) {
-        displayPrincipal.innerHTML = `<div style="text-align:center; padding:100px;">Erro: ${nome} não carregado.</div>`;
+        if (tempLoader) tempLoader.remove();
+        const erroMsg = document.createElement('div');
+        erroMsg.innerHTML = `<div style="text-align:center; padding:100px;">Erro: ${nome} não carregado.</div>`;
+        displayPrincipal.appendChild(erroMsg);
     }
 }
 
