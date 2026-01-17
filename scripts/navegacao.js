@@ -15,6 +15,9 @@ async function abrirNoticiaUnica(item) {
     if (!displayPrincipal) return;
 
     try {
+        // Limpa o cache visual para dar lugar à notícia única
+        Object.values(cacheSecoes).forEach(el => el.style.display = 'none');
+        
         // 1. Carrega o CSS da seção de origem
         gerenciarCSSDaSecao(item.origem || 'manchetes');
 
@@ -80,14 +83,12 @@ async function abrirNoticiaUnica(item) {
 
 /**
  * Vigia de URL para Links Compartilhados (?id=...)
- * Agora integrado com o Modal Global do index.html
  */
 function verificarLinkCompartilhado() {
     const params = new URLSearchParams(window.location.search);
     const idNoticia = params.get('id');
 
     if (idNoticia) {
-        // Mostra um loader enquanto o Firebase sincroniza
         if (displayPrincipal) {
             displayPrincipal.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); font-family: sans-serif; letter-spacing: 1px;">BUSCANDO NOTÍCIA...</div>';
         }
@@ -96,13 +97,10 @@ function verificarLinkCompartilhado() {
             if (window.noticiasFirebase && window.noticiasFirebase.length > 0) {
                 const item = window.noticiasFirebase.find(n => n.id === idNoticia);
                 if (item) {
-                    // PRIORIDADE: Abre no Modal Global para não quebrar a navegação de fundo
                     if (typeof window.abrirModalNoticia === 'function') {
                         window.abrirModalNoticia(item);
-                        // Carrega a seção de fundo padrão (manchetes) para o site não ficar vazio atrás do modal
                         carregarSecao('manchetes');
                     } else {
-                        // Fallback para página cheia caso o modal falhe
                         abrirNoticiaUnica(item);
                     }
                 } else {
@@ -116,9 +114,6 @@ function verificarLinkCompartilhado() {
     }
 }
 
-/**
- * Limpa o ID da URL e restaura a visualização da lista
- */
 window.voltarParaLista = function() {
     const url = new URL(window.location);
     url.searchParams.delete('id');
@@ -127,12 +122,11 @@ window.voltarParaLista = function() {
     const tagAtiva = document.querySelector('.filter-tag.active');
     const secaoDestino = tagAtiva ? tagAtiva.dataset.section : 'manchetes';
     
+    // Força a limpeza do displayPrincipal para remover o layout de "notícia única" antes de restaurar o cache
+    displayPrincipal.innerHTML = '';
     carregarSecao(secaoDestino);
 };
 
-/**
- * Gerencia o carregamento de CSS específico
- */
 function gerenciarCSSDaSecao(nome) {
     const linkAntigo = document.getElementById('css-secao-dinamica');
     if (linkAntigo) linkAntigo.remove();
@@ -150,6 +144,11 @@ function gerenciarCSSDaSecao(nome) {
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
+    // Se houver conteúdo de "Notícia Única" ou "Busca", limpamos para restaurar as abas
+    if (displayPrincipal.querySelector('.foco-noticia-wrapper') || displayPrincipal.querySelector('#loader-sinc')) {
+        displayPrincipal.innerHTML = '';
+    }
+
     // 1. Oculta todas as seções carregadas anteriormente no cache
     Object.values(cacheSecoes).forEach(el => {
         el.style.display = 'none';
@@ -163,9 +162,12 @@ async function carregarSecao(nome) {
         return;
     }
 
-    // 3. Se não existe, cria o container e faz o fetch
-    // Remove qualquer conteúdo residual que não seja do cache (como mensagens de erro ou loaders fixos)
-    if (Object.keys(cacheSecoes).length === 0) displayPrincipal.innerHTML = '';
+    // 3. Se é a primeira vez ou não está no cache, limpamos o texto "Iniciando portal..."
+    // Mas apenas se não houver outras seções no cache já inseridas no DOM
+    const possuiCacheNoDOM = displayPrincipal.querySelectorAll('.secao-container-cache').length > 0;
+    if (!possuiCacheNoDOM) {
+        displayPrincipal.innerHTML = ''; 
+    }
     
     const tempLoader = document.createElement('div');
     tempLoader.id = "loader-sinc";
@@ -180,20 +182,16 @@ async function carregarSecao(nome) {
         
         const html = await response.text();
         
-        // Criar o wrapper da seção para o cache
         const secaoWrapper = document.createElement('div');
         secaoWrapper.id = `secao-cache-${nome}`;
         secaoWrapper.className = 'secao-container-cache';
         secaoWrapper.innerHTML = html;
         
-        // Remove loader e adiciona a nova seção
-        tempLoader.remove();
+        if (tempLoader) tempLoader.remove();
         displayPrincipal.appendChild(secaoWrapper);
 
-        // Registra no cache
         cacheSecoes[nome] = secaoWrapper;
 
-        // Re-executa os scripts da seção APENAS na primeira vez
         const scripts = secaoWrapper.querySelectorAll("script");
         scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
@@ -213,7 +211,6 @@ async function carregarSecao(nome) {
     }
 }
 
-// Eventos de clique nas categorias (Filtros)
 document.querySelectorAll('.filter-tag').forEach(tag => {
     tag.addEventListener('click', () => {
         document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
@@ -227,7 +224,6 @@ window.toggleMobileMenu = function() {
     if (menu) menu.classList.toggle('active');
 };
 
-// Inicialização
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     if (params.has('id')) {
@@ -237,6 +233,5 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Exposição global para integração entre arquivos
 window.carregarSecao = carregarSecao;
 window.abrirNoticiaUnica = abrirNoticiaUnica;
