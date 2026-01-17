@@ -1,3 +1,5 @@
+/* estilos/geral.css */
+
 /* --- CONFIGURAÇÕES GLOBAIS E VARIÁVEIS --- */
 :root {
     --nyt-black: #121212;
@@ -28,7 +30,7 @@
     --font-logo: "Franklin Gothic", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-/* --- MODo ESCURO --- */
+/* --- MODO ESCURO --- */
 body.dark-mode {
     --bg: #111;
     --card-bg: #111;
@@ -60,7 +62,25 @@ body {
     transition: background var(--duration) var(--ease-editorial), color var(--duration) var(--ease-editorial);
 }
 
-/* --- ELEMENTOS DE UTILIDADE (Progress Bar e Botão Topo) --- */
+/* --- SUPORTE AO SISTEMA DE CACHE (EDIÇÃO) --- */
+.secao-container-cache {
+    width: 100%;
+    display: block;
+    animation: fadeInSecao 0.4s var(--ease-editorial);
+}
+
+@keyframes fadeInSecao {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilo para o botão de voltar usado no navegacao.js */
+.btn-voltar-estilizado:hover {
+    background: var(--text-main) !important;
+    color: var(--bg) !important;
+}
+
+/* --- ELEMENTOS DE UTILIDADE --- */
 #progress-bar {
     position: fixed;
     top: 0;
@@ -86,3 +106,8 @@ body {
     z-index: 100;
 }
 
+/* Estilos de Fade Global */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
