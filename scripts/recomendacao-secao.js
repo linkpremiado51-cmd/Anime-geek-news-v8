@@ -261,7 +261,6 @@ const CATALOGO = [
    CSS INJETADO
 =========================== */
 const styles = `
- 
   /* --- LAYOUT DA GAVETA --- */
   #ag-drawer {
     background: #ffffff;
@@ -306,10 +305,10 @@ const styles = `
     
     /* Fixação no topo com efeito vidro */
     position: sticky;
-    top: -30px; 
+    top: -30px; /* Alinhado ao topo do container */
     z-index: 100;
     margin: -30px auto 30px auto; 
-    padding: 25px 15px; /* Ajuste para não colar na borda no mobile */
+    padding: 25px 0;
     
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
@@ -323,6 +322,7 @@ const styles = `
     border-color: rgba(255, 255, 255, 0.08);
   }
 
+  /* Efeito de degradê inferior para suavizar a rolagem dos itens */
   .ag-drawer-header::after {
     content: '';
     position: absolute;
@@ -341,24 +341,7 @@ const styles = `
   .ag-search-wrapper {
     position: relative;
     flex: 1;
-    min-width: 250px; /* Reduzido levemente para maior compatibilidade */
-  }
-
-  /* Ajuste para celulares muito pequenos */
-  @media (max-width: 480px) {
-    .ag-search-wrapper {
-      min-width: 100%;
-      order: 1;
-    }
-    .ag-mode-group {
-      width: 100%;
-      justify-content: center;
-      order: 2;
-    }
-    .ag-drawer-header {
-      gap: 15px;
-      padding: 20px 10px;
-    }
+    min-width: 280px;
   }
 
   .ag-search-icon-svg {
@@ -403,7 +386,6 @@ const styles = `
     padding: 4px;
     border-radius: 10px;
     display: flex;
-    white-space: nowrap;
   }
   body.dark-mode .ag-mode-group { background: rgba(255,255,255,0.08); }
 
@@ -418,14 +400,6 @@ const styles = `
     cursor: pointer;
     text-transform: uppercase;
     transition: all 0.2s;
-  }
-
-  /* No mobile, botões menores para não quebrar */
-  @media (max-width: 360px) {
-    .ag-mode-btn {
-      padding: 8px 10px;
-      font-size: 10px;
-    }
   }
 
   .ag-mode-btn.active {
@@ -447,6 +421,7 @@ const styles = `
     margin-right: auto;
   }
 
+  /* Estilo do título que agora é um botão */
   .ag-section-header-btn {
     display: flex;
     align-items: center;
@@ -473,6 +448,7 @@ const styles = `
   }
   body.dark-mode .ag-section-text { color: #fff; }
 
+  /* Indicador visual de que o título está selecionado */
   .ag-section-header-btn.is-active .ag-section-text {
     color: var(--primary-color, #e50914);
     text-decoration: underline;
@@ -487,19 +463,11 @@ const styles = `
     box-shadow: 0 0 5px rgba(0,0,0,0.2);
   }
 
-  /* --- GRID RESPONSIVO --- */
+  /* --- GRID --- */
   .ag-grid-container {
     display: grid;
-    /* Computador: colunas de no mínimo 150px. Mobile: se ajusta automaticamente */
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
     gap: 10px;
-  }
-
-  /* Ajuste para celulares muito pequenos (ex: iPhone SE) */
-  @media (max-width: 340px) {
-    .ag-grid-container {
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
   }
 
   .ag-card {
@@ -518,7 +486,6 @@ const styles = `
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 50px; /* Garante altura mínima em telas pequenas */
   }
 
   body.dark-mode .ag-card {
@@ -563,7 +530,7 @@ const styles = `
     opacity: 1;
   }
 
-  /* --- TOAST NOTIFICATION --- */
+  /* --- TOAST NOTIFICATION (Substituto do Alert) --- */
   #ag-toast-container {
     position: fixed;
     bottom: 30px;
@@ -574,8 +541,6 @@ const styles = `
     display: flex;
     flex-direction: column;
     gap: 10px;
-    width: auto;
-    max-width: 90vw; /* Evita que o toast saia da tela no mobile */
   }
 
   .ag-toast {
@@ -593,16 +558,6 @@ const styles = `
     display: flex;
     align-items: center;
     gap: 10px;
-    white-space: nowrap;
-  }
-
-  /* No mobile, o toast pode quebrar linha se for muito longo */
-  @media (max-width: 480px) {
-    .ag-toast {
-      white-space: normal;
-      border-radius: 15px;
-      padding: 12px 18px;
-    }
   }
   
   .ag-toast.error { border-left: 4px solid #ff4444; }
@@ -615,8 +570,7 @@ const styles = `
   @keyframes agFadeOut {
     to { opacity: 0; transform: translateY(-10px); }
   }
-
-  /* --- FILTRO SCROLLER --- */
+     /* --- AJUSTE PARA BOTÃO PROFISSIONAL E FIXO --- */
   #filterScroller {
     display: flex;
     align-items: center;
@@ -624,32 +578,38 @@ const styles = `
     gap: 8px;
     padding-right: 0 !important;
     overflow-x: auto;
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
+    scrollbar-width: none; /* Esconde scroll no Firefox */
   }
-  #filterScroller::-webkit-scrollbar { display: none; }
+  #filterScroller::-webkit-scrollbar { display: none; } /* Esconde scroll no Chrome/Safari */
 
   .filter-tag.cfg-btn {
     position: sticky;
     right: 0 !important;
     z-index: 99;
+    
+    /* Estética Profissional: Glassmorphism */
     background: rgba(255, 255, 255, 0.9); 
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    
     min-width: 48px;
     height: 34px;
     margin-left: auto;
     display: flex;
     align-items: center;
     justify-content: center;
+    
+    /* Borda e Sombra refinadas */
     border: none;
     border-left: 1px solid rgba(0, 0, 0, 0.05);
     box-shadow: -10px 0 20px rgba(0, 0, 0, 0.05);
+    
     cursor: pointer;
     font-size: 18px;
     transition: all 0.3s ease;
   }
 
+  /* Efeito de degradê para as abas sumirem suavemente atrás do botão */
   .filter-tag.cfg-btn::before {
     content: '';
     position: absolute;
@@ -661,6 +621,7 @@ const styles = `
     pointer-events: none;
   }
 
+  /* Ajustes para o Dark Mode */
   body.dark-mode .filter-tag.cfg-btn {
     background: rgba(20, 20, 20, 0.9);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -671,20 +632,11 @@ const styles = `
     background: linear-gradient(to right, transparent, rgba(20, 20, 20, 0.9));
   }
 
+  /* Feedback visual ao tocar/clicar */
   .filter-tag.cfg-btn:active {
     transform: scale(0.9);
     opacity: 0.8;
   }
-
-  /* --- AJUSTES FINAIS PARA DESKTOP --- */
-  @media (min-width: 1024px) {
-    .ag-grid-container {
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 15px;
-    }
-    .ag-drawer-scroll {
-      padding: 40px 60px;
-    }
 
 
 
