@@ -316,7 +316,7 @@
 
     // --- FIREBASE LISTENERS ---
     function carregarTudoRealTime() {
-      const q = collection(db, "noticias");
+      const q = collection(db, "cine_bast");
       onSnapshot(q, (snapshot) => {
         const noticiasFB = [];
         snapshot.forEach((doc) => {
