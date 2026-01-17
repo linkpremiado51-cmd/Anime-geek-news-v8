@@ -3,157 +3,119 @@
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
 /**
- * Cria uma tela de carregamento suave APENAS dentro do container de conteúdo
+ * Aplica o efeito de transição visual suave no container
  */
-function dispararTransicaoSuave() {
+function aplicarTransicaoConteudo(callback) {
     if (!displayPrincipal) return;
 
-    // Garante que o container pai tenha posição relativa para o overlay se ajustar a ele
-    displayPrincipal.style.position = 'relative';
-    displayPrincipal.style.minHeight = '300px';
+    // 1. Faz o conteúdo atual sumir suavemente
+    displayPrincipal.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    displayPrincipal.style.opacity = '0';
+    displayPrincipal.style.transform = 'translateY(10px)';
 
-    const antiga = document.getElementById('transicao-suave-overlay');
-    if (antiga) antiga.remove();
+    setTimeout(async () => {
+        // 2. Executa a troca de conteúdo (o fetch e a injeção)
+        await callback();
 
-    const overlay = document.createElement('div');
-    overlay.id = 'transicao-suave-overlay';
-    
-    // Estilização para cobrir apenas a área de conteúdo
-    Object.assign(overlay.style, {
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'var(--bg)',
-        zIndex: '10',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        transition: 'opacity 0.4s ease',
-        opacity: '1'
-    });
-
-    overlay.innerHTML = `
-        <div style="text-align: center;">
-            <div style="width: 30px; height: 30px; border: 2px solid var(--border); border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px;"></div>
-            <span style="font-size: 9px; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Atualizando Feed</span>
-        </div>
-        <style>
-            @keyframes spin { to { transform: rotate(360deg); } }
-        </style>
-    `;
-
-    displayPrincipal.appendChild(overlay);
-
-    // Duração total de ~1.3s (900ms espera + 400ms fade)
-    setTimeout(() => {
-        overlay.style.opacity = '0';
+        // 3. Faz o conteúdo novo aparecer deslizando para cima
         setTimeout(() => {
-            if (overlay.parentNode) overlay.remove();
-        }, 400);
-    }, 900);
+            displayPrincipal.style.opacity = '1';
+            displayPrincipal.style.transform = 'translateY(0)';
+        }, 100); // Pequeno fôlego para o navegador processar a injeção
+    }, 300);
 }
 
 /**
- * Abre a notícia única
- */
-async function abrirNoticiaUnica(item) {
-    if (!displayPrincipal) return;
-    
-    dispararTransicaoSuave();
-
-    try {
-        gerenciarCSSDaSecao(item.origem || 'manchetes');
-
-        displayPrincipal.innerHTML = `
-            <div class="foco-noticia-wrapper" style="animation: fadeIn 0.4s ease; max-width: var(--container-w); margin: 0 auto; padding: 20px;">
-                <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
-                    <button onclick="window.voltarParaLista()" class="btn-voltar-estilizado" style="background: none; border: 1px solid var(--text-main); color: var(--text-main); padding: 8px 18px; font-size: 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; text-transform: uppercase;">
-                        <i class="fa-solid fa-chevron-left" style="font-size: 14px;"></i> 
-                        <span>Voltar</span>
-                    </button>
-                </div>
-                <div id="container-principal"></div>
-            </div>
-        `;
-
-        const response = await fetch(`./secoes/${item.origem || 'manchetes'}.html`);
-        const htmlBase = await response.text();
-
-        const parser = new DOMParser();
-        const docSeçao = parser.parseFromString(htmlBase, 'text/html');
-        const scripts = docSeçao.querySelectorAll("script");
-
-        scripts.forEach(oldScript => {
-            const newScript = document.createElement("script");
-            if (oldScript.type === 'module' || !oldScript.type) {
-                let conteudo = oldScript.textContent;
-                if (conteudo.includes('function renderizarNoticias')) {
-                    conteudo += `\n window.renderizarNoticias = renderizarNoticias;`;
-                }
-                newScript.type = 'module';
-                newScript.textContent = conteudo;
-            } else {
-                if (oldScript.src) newScript.src = oldScript.src;
-                newScript.textContent = oldScript.textContent;
-            }
-            document.head.appendChild(newScript);
-        });
-
-        let tentativas = 0;
-        const tentarRenderizar = () => {
-            if (typeof window.renderizarNoticias === 'function') {
-                const container = document.getElementById('container-principal');
-                if (container) container.innerHTML = "";
-                window.renderizarNoticias([item]);
-            } else if (tentativas < 20) {
-                tentativas++;
-                setTimeout(tentarRenderizar, 150);
-            }
-        };
-        tentarRenderizar();
-
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-/**
- * Carrega dinamicamente o feed de uma seção
+ * Carrega dinamicamente o feed de uma seção com Cross-Fade
  */
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
-    dispararTransicaoSuave();
-    
-    try {
-        gerenciarCSSDaSecao(nome);
+    aplicarTransicaoConteudo(async () => {
+        try {
+            gerenciarCSSDaSecao(nome);
 
-        const response = await fetch(`./secoes/${nome}.html`);
-        if (!response.ok) throw new Error("Falha");
-        
-        const html = await response.text();
-        displayPrincipal.innerHTML = html;
+            const response = await fetch(`./secoes/${nome}.html`);
+            if (!response.ok) throw new Error("Falha");
+            
+            const html = await response.text();
+            displayPrincipal.innerHTML = html;
 
-        const scripts = displayPrincipal.querySelectorAll("script");
-        scripts.forEach(oldScript => {
-            const newScript = document.createElement("script");
-            newScript.type = oldScript.type || "text/javascript";
-            if (oldScript.src) newScript.src = oldScript.src;
-            newScript.textContent = oldScript.textContent;
-            document.body.appendChild(newScript);
-        });
+            // Re-executa os scripts do Firebase
+            const scripts = displayPrincipal.querySelectorAll("script");
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement("script");
+                newScript.type = oldScript.type || "text/javascript";
+                if (oldScript.src) newScript.src = oldScript.src;
+                newScript.textContent = oldScript.textContent;
+                document.body.appendChild(newScript);
+            });
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    } catch (err) {
-        displayPrincipal.innerHTML = `<div style="padding:50px; text-align:center;">Erro ao carregar.</div>`;
-    }
+        } catch (err) {
+            displayPrincipal.innerHTML = `<div style="padding:100px; text-align:center;">Erro ao carregar seção.</div>`;
+        }
+    });
 }
 
-// Funções auxiliares mantidas conforme original
+/**
+ * Abre a notícia única com a mesma suavidade
+ */
+async function abrirNoticiaUnica(item) {
+    if (!displayPrincipal) return;
+    
+    aplicarTransicaoConteudo(async () => {
+        try {
+            gerenciarCSSDaSecao(item.origem || 'manchetes');
+
+            displayPrincipal.innerHTML = `
+                <div class="foco-noticia-wrapper" style="max-width: var(--container-w); margin: 0 auto; padding: 20px;">
+                    <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
+                        <button onclick="window.voltarParaLista()" class="btn-voltar-estilizado" style="background: none; border: 1px solid var(--text-main); color: var(--text-main); padding: 8px 18px; font-size: 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; text-transform: uppercase;">
+                            <i class="fa-solid fa-chevron-left" style="font-size: 14px;"></i> 
+                            <span>Voltar</span>
+                        </button>
+                    </div>
+                    <div id="container-principal"></div>
+                </div>
+            `;
+
+            const response = await fetch(`./secoes/${item.origem || 'manchetes'}.html`);
+            const htmlBase = await response.text();
+
+            const parser = new DOMParser();
+            const docSeçao = parser.parseFromString(htmlBase, 'text/html');
+            const scripts = docSeçao.querySelectorAll("script");
+
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement("script");
+                newScript.type = 'module';
+                newScript.textContent = oldScript.textContent.includes('renderizarNoticias') 
+                    ? oldScript.textContent + `\n window.renderizarNoticias = renderizarNoticias;` 
+                    : oldScript.textContent;
+                document.head.appendChild(newScript);
+            });
+
+            let tentativas = 0;
+            const tentarRenderizar = () => {
+                if (typeof window.renderizarNoticias === 'function') {
+                    window.renderizarNoticias([item]);
+                } else if (tentativas < 20) {
+                    tentativas++;
+                    setTimeout(tentarRenderizar, 150);
+                }
+            };
+            tentarRenderizar();
+
+        } catch (err) {
+            console.error(err);
+        }
+    });
+}
+
+// --- Funções Auxiliares ---
+
 function gerenciarCSSDaSecao(nome) {
     const linkAntigo = document.getElementById('css-secao-dinamica');
     if (linkAntigo) linkAntigo.remove();
