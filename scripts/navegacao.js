@@ -3,11 +3,6 @@
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
 /**
- * Cache para armazenar os containers das seções já carregadas
- */
-const cacheSecoes = {};
-
-/**
  * Abre a notícia garantindo que o motor de renderização da seção seja injetado corretamente.
  * Utilizado para visualização em "página cheia" (Full Page View).
  */
@@ -15,9 +10,6 @@ async function abrirNoticiaUnica(item) {
     if (!displayPrincipal) return;
 
     try {
-        // Limpa o cache visual para dar lugar à notícia única
-        Object.values(cacheSecoes).forEach(el => el.style.display = 'none');
-        
         // 1. Carrega o CSS da seção de origem
         gerenciarCSSDaSecao(item.origem || 'manchetes');
 
@@ -83,6 +75,7 @@ async function abrirNoticiaUnica(item) {
 
 /**
  * Vigia de URL para Links Compartilhados (?id=...)
+ * Agora integrado com o Modal Global do index.html
  */
 function verificarLinkCompartilhado() {
     const params = new URLSearchParams(window.location.search);
@@ -114,6 +107,9 @@ function verificarLinkCompartilhado() {
     }
 }
 
+/**
+ * Limpa o ID da URL e restaura a visualização da lista
+ */
 window.voltarParaLista = function() {
     const url = new URL(window.location);
     url.searchParams.delete('id');
@@ -122,11 +118,12 @@ window.voltarParaLista = function() {
     const tagAtiva = document.querySelector('.filter-tag.active');
     const secaoDestino = tagAtiva ? tagAtiva.dataset.section : 'manchetes';
     
-    // Força a limpeza do displayPrincipal para remover o layout de "notícia única" antes de restaurar o cache
-    displayPrincipal.innerHTML = '';
     carregarSecao(secaoDestino);
 };
 
+/**
+ * Gerencia o carregamento de CSS específico
+ */
 function gerenciarCSSDaSecao(nome) {
     const linkAntigo = document.getElementById('css-secao-dinamica');
     if (linkAntigo) linkAntigo.remove();
@@ -139,40 +136,13 @@ function gerenciarCSSDaSecao(nome) {
 }
 
 /**
- * Carrega dinamicamente o feed de uma seção com persistência (Cache)
+ * Carrega dinamicamente o feed de uma seção
  */
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
-    // Se houver conteúdo de "Notícia Única" ou "Busca", limpamos para restaurar as abas
-    if (displayPrincipal.querySelector('.foco-noticia-wrapper') || displayPrincipal.querySelector('#loader-sinc')) {
-        displayPrincipal.innerHTML = '';
-    }
-
-    // 1. Oculta todas as seções carregadas anteriormente no cache
-    Object.values(cacheSecoes).forEach(el => {
-        el.style.display = 'none';
-    });
-
-    // 2. Se a seção já existe no cache, apenas mostra ela
-    if (cacheSecoes[nome]) {
-        gerenciarCSSDaSecao(nome);
-        cacheSecoes[nome].style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-    }
-
-    // 3. Se é a primeira vez ou não está no cache, limpamos o texto "Iniciando portal..."
-    // Mas apenas se não houver outras seções no cache já inseridas no DOM
-    const possuiCacheNoDOM = displayPrincipal.querySelectorAll('.secao-container-cache').length > 0;
-    if (!possuiCacheNoDOM) {
-        displayPrincipal.innerHTML = ''; 
-    }
-    
-    const tempLoader = document.createElement('div');
-    tempLoader.id = "loader-sinc";
-    tempLoader.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); opacity: 0.5;">SINCRONIZANDO...</div>';
-    displayPrincipal.appendChild(tempLoader);
+    // Loader suave para indicar processamento
+    displayPrincipal.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); opacity: 0.5;">SINCRONIZANDO...</div>';
     
     try {
         gerenciarCSSDaSecao(nome);
@@ -182,17 +152,11 @@ async function carregarSecao(nome) {
         
         const html = await response.text();
         
-        const secaoWrapper = document.createElement('div');
-        secaoWrapper.id = `secao-cache-${nome}`;
-        secaoWrapper.className = 'secao-container-cache';
-        secaoWrapper.innerHTML = html;
-        
-        if (tempLoader) tempLoader.remove();
-        displayPrincipal.appendChild(secaoWrapper);
+        // Injeta o HTML (como no seu código original que funcionava)
+        displayPrincipal.innerHTML = html;
 
-        cacheSecoes[nome] = secaoWrapper;
-
-        const scripts = secaoWrapper.querySelectorAll("script");
+        // Re-executa os scripts para garantir que o Firebase renderize os dados
+        const scripts = displayPrincipal.querySelectorAll("script");
         scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
             newScript.type = oldScript.type || "text/javascript";
@@ -204,13 +168,11 @@ async function carregarSecao(nome) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (err) {
-        if (tempLoader) tempLoader.remove();
-        const erroMsg = document.createElement('div');
-        erroMsg.innerHTML = `<div style="text-align:center; padding:100px;">Erro: ${nome} não carregado.</div>`;
-        displayPrincipal.appendChild(erroMsg);
+        displayPrincipal.innerHTML = `<div style="text-align:center; padding:100px;">Erro: ${nome} não carregado.</div>`;
     }
 }
 
+// Eventos de clique nas categorias (Filtros)
 document.querySelectorAll('.filter-tag').forEach(tag => {
     tag.addEventListener('click', () => {
         document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
@@ -224,6 +186,7 @@ window.toggleMobileMenu = function() {
     if (menu) menu.classList.toggle('active');
 };
 
+// Inicialização
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     if (params.has('id')) {
@@ -233,5 +196,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Exposição global para integração entre arquivos
 window.carregarSecao = carregarSecao;
 window.abrirNoticiaUnica = abrirNoticiaUnica;
