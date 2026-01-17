@@ -6,7 +6,6 @@
    • Design Harmônico
 ====================================================== */
 
-registerModule('recomendacao', 'Recomendação de seções');
 
 (function(){
 
