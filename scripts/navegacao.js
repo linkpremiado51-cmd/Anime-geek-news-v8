@@ -1,5 +1,5 @@
 /* scripts/navegacao.js */
-registerModule('navegacao', 'Navegação do site');
+
 
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
