@@ -27,7 +27,6 @@ function aplicarTransicaoConteudo(callback) {
 
 /**
  * Abre a notícia garantindo que o motor de renderização da seção seja injetado corretamente.
- * BASE ORIGINAL MANTIDA
  */
 async function abrirNoticiaUnica(item) {
     if (!displayPrincipal) return;
@@ -97,7 +96,6 @@ async function abrirNoticiaUnica(item) {
 
 /**
  * Vigia de URL para Links Compartilhados
- * BASE ORIGINAL MANTIDA
  */
 function verificarLinkCompartilhado() {
     const params = new URLSearchParams(window.location.search);
@@ -130,21 +128,27 @@ function verificarLinkCompartilhado() {
 }
 
 /**
- * Restaura a visualização da lista
+ * Restaura a visualização da lista baseada na aba ativa
  */
 window.voltarParaLista = function() {
     const url = new URL(window.location);
     url.searchParams.delete('id');
     window.history.pushState({}, '', url);
 
+    // Ajuste para o Sistema v7: busca o ID da seção ativa ou padrão 'manchetes'
     const tagAtiva = document.querySelector('.filter-tag.active');
-    const secaoDestino = tagAtiva ? tagAtiva.dataset.section : 'manchetes';
+    let secaoDestino = 'manchetes';
+
+    if (tagAtiva) {
+        // Se a tag ativa tiver o ID guardado no dataset (recomendado no seu v7)
+        secaoDestino = tagAtiva.dataset.section || tagAtiva.textContent.toLowerCase().trim();
+    }
     
     carregarSecao(secaoDestino);
 };
 
 /**
- * Gerencia o carregamento de CSS específico
+ * Gerencia o carregamento de CSS específico da seção
  */
 function gerenciarCSSDaSecao(nome) {
     const linkAntigo = document.getElementById('css-secao-dinamica');
@@ -154,22 +158,27 @@ function gerenciarCSSDaSecao(nome) {
     novoLink.id = 'css-secao-dinamica';
     novoLink.rel = 'stylesheet';
     novoLink.href = `./estilos/secoes/${nome}.css`;
+    
+    // Evita erro 404 no console se o CSS não existir, mas tenta carregar
+    novoLink.onerror = () => novoLink.remove(); 
     document.head.appendChild(novoLink);
 }
 
 /**
- * Carrega dinamicamente o feed de uma seção
- * BASE ORIGINAL MANTIDA COM TRANSIÇÃO ADICIONADA
+ * Carrega dinamicamente o feed de uma seção (Busca na pasta /secoes/)
  */
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
+    // Normaliza o nome para evitar erro de maiúsculas/minúsculas no GitHub
+    const nomeLimpo = nome.toLowerCase().trim();
+
     aplicarTransicaoConteudo(async () => {
         try {
-            gerenciarCSSDaSecao(nome);
+            gerenciarCSSDaSecao(nomeLimpo);
 
-            const response = await fetch(`./secoes/${nome}.html`);
-            if (!response.ok) throw new Error("Arquivo não encontrado.");
+            const response = await fetch(`./secoes/${nomeLimpo}.html`);
+            if (!response.ok) throw new Error(`Arquivo secoes/${nomeLimpo}.html não encontrado.`);
             
             const html = await response.text();
             displayPrincipal.innerHTML = html;
@@ -186,34 +195,33 @@ async function carregarSecao(nome) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
         } catch (err) {
-            displayPrincipal.innerHTML = `<div style="text-align:center; padding:100px;">Erro: ${nome} não carregado.</div>`;
+            console.error(err);
+            displayPrincipal.innerHTML = `<div style="text-align:center; padding:100px;">A seção <b>${nomeLimpo}</b> ainda não está disponível.</div>`;
         }
     });
 }
 
-// Eventos de clique nas categorias
-document.querySelectorAll('.filter-tag').forEach(tag => {
-    tag.addEventListener('click', () => {
-        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-        tag.classList.add('active');
-        carregarSecao(tag.dataset.section);
-    });
-});
-
+/**
+ * Controle do Menu Mobile
+ */
 window.toggleMobileMenu = function() {
     const menu = document.getElementById('mobileMenu');
     if (menu) menu.classList.toggle('active');
 };
 
-// Inicialização
+/**
+ * Inicialização do Sistema de Navegação
+ */
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     if (params.has('id')) {
         verificarLinkCompartilhado();
     } else {
+        // Carrega a seção inicial (Manchetes)
         carregarSecao('manchetes');
     }
 });
 
+// Exporta as funções para o escopo global para serem usadas pelo Sistema de Abas v7
 window.carregarSecao = carregarSecao;
 window.abrirNoticiaUnica = abrirNoticiaUnica;
