@@ -32,8 +32,6 @@
     aspect-ratio: 16 / 9;
     background: #000;
     position: relative;
-    flex-shrink: 0; /* Garante que o vídeo não encolha */
-    z-index: 2;
 }
 
 #m-video { width: 100%; height: 100%; border: none; }
@@ -55,84 +53,6 @@
     justify-content: center;
     z-index: 10;
 }
-
-/* --- NOVO ESTILO: BOTÃO E WRAPPER DA FICHA TÉCNICA --- */
-#ficha-area-control {
-    background: #fff;
-    position: relative;
-    z-index: 1;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-#btn-toggle-ficha {
-    width: 100%;
-    background: #f8f9fa; /* Cor de fundo suave */
-    border: none;
-    padding: 10px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid #eee;
-    transition: background 0.2s;
-}
-
-#btn-toggle-ficha:hover {
-    background: #e9ecef;
-    color: var(--tema-cor, #ff0000);
-}
-
-#btn-toggle-ficha span {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-#btn-toggle-ficha #icon-chevron {
-    transition: transform 0.3s ease;
-}
-
-/* Estado Ativo do Botão */
-#btn-toggle-ficha.ativo {
-    background: var(--tema-cor, #ff0000);
-    color: white;
-}
-#btn-toggle-ficha.ativo #icon-chevron {
-    transform: rotate(180deg);
-}
-
-/* Área retrátil (Animação de altura) */
-#m-ficha-wrapper {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); /* Efeito slide suave */
-    background: #fff;
-}
-
-#m-ficha-wrapper.expandido {
-    max-height: 500px; /* Altura máxima segura para conteúdo expandido */
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-}
-
-/* Grid da Ficha (Ajustado para o novo local) */
-#m-ficha {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 20px 24px;
-    background: #fff;
-}
-
-.info-item { display: flex; flex-direction: column; gap: 2px; }
-.info-label { font-size: 10px; font-weight: 700; color: #999; text-transform: uppercase; }
-.info-valor { font-size: 13px; font-weight: 700; color: #121212; }
-
-/* ----------------------------------------------------- */
 
 /* Corpo do Modal */
 .modal-body {
@@ -158,6 +78,22 @@
     color: #121212;
     margin-bottom: 16px;
 }
+
+/* Ficha Técnica Reestilizada (Grid Executivo) */
+#m-ficha {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    background: #f8f9fa;
+    padding: 16px;
+    border-left: 4px solid var(--tema-cor, #ff0000);
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.info-item { display: flex; flex-direction: column; gap: 2px; }
+.info-label { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; }
+.info-valor { font-size: 13px; font-weight: 700; color: #121212; }
 
 #m-resumo {
     font-size: 15px;
