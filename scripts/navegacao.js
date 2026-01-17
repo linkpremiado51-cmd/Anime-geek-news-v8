@@ -3,17 +3,64 @@
 const displayPrincipal = document.getElementById('conteudo_de_destaque');
 
 /**
+ * Cria e gerencia uma tela de carregamento suave (Overlay)
+ * Duração total aproximada: 1.3s
+ */
+function dispararTransicaoSuave() {
+    // Remove se já existir uma
+    const antiga = document.getElementById('transicao-suave-overlay');
+    if (antiga) antiga.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'transicao-suave-overlay';
+    
+    // Estilização direta para garantir que cubra o conteúdo
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'var(--bg)', // Usa a cor de fundo do seu tema
+        zIndex: '9999',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        transition: 'opacity 0.4s ease',
+        opacity: '1'
+    });
+
+    overlay.innerHTML = `
+        <div style="text-align: center;">
+            <div style="width: 40px; height: 40px; border: 2px solid var(--border); border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px;"></div>
+            <span style="font-size: 10px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Sincronizando</span>
+        </div>
+        <style>
+            @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Inicia o desaparecimento após 0.9s (totalizando ~1.3s com a transição de 0.4s)
+    setTimeout(() => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 400);
+    }, 900);
+}
+
+/**
  * Abre a notícia garantindo que o motor de renderização da seção seja injetado corretamente.
- * Utilizado para visualização em "página cheia" (Full Page View).
  */
 async function abrirNoticiaUnica(item) {
     if (!displayPrincipal) return;
+    
+    dispararTransicaoSuave();
 
     try {
-        // 1. Carrega o CSS da seção de origem
         gerenciarCSSDaSecao(item.origem || 'manchetes');
 
-        // 2. Prepara o layout com o botão de Voltar
         displayPrincipal.innerHTML = `
             <div class="foco-noticia-wrapper" style="animation: fadeIn 0.4s ease; max-width: var(--container-w); margin: 0 auto; padding: 20px;">
                 <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
@@ -28,7 +75,6 @@ async function abrirNoticiaUnica(item) {
             </div>
         `;
 
-        // 3. Busca o HTML da seção silenciosamente
         const response = await fetch(`./secoes/${item.origem || 'manchetes'}.html`);
         if (!response.ok) throw new Error("Falha ao carregar motor de renderização.");
         const htmlBase = await response.text();
@@ -74,18 +120,13 @@ async function abrirNoticiaUnica(item) {
 }
 
 /**
- * Vigia de URL para Links Compartilhados (?id=...)
- * Agora integrado com o Modal Global do index.html
+ * Vigia de URL para Links Compartilhados
  */
 function verificarLinkCompartilhado() {
     const params = new URLSearchParams(window.location.search);
     const idNoticia = params.get('id');
 
     if (idNoticia) {
-        if (displayPrincipal) {
-            displayPrincipal.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); font-family: sans-serif; letter-spacing: 1px;">BUSCANDO NOTÍCIA...</div>';
-        }
-
         const checkData = setInterval(() => {
             if (window.noticiasFirebase && window.noticiasFirebase.length > 0) {
                 const item = window.noticiasFirebase.find(n => n.id === idNoticia);
@@ -102,13 +143,12 @@ function verificarLinkCompartilhado() {
                 clearInterval(checkData);
             }
         }, 100);
-        
         setTimeout(() => clearInterval(checkData), 5000);
     }
 }
 
 /**
- * Limpa o ID da URL e restaura a visualização da lista
+ * Restaura a visualização da lista
  */
 window.voltarParaLista = function() {
     const url = new URL(window.location);
@@ -136,13 +176,13 @@ function gerenciarCSSDaSecao(nome) {
 }
 
 /**
- * Carrega dinamicamente o feed de uma seção
+ * Carrega dinamicamente o feed de uma seção com efeito de transição suave
  */
 async function carregarSecao(nome) {
     if (!displayPrincipal) return;
 
-    // Loader suave para indicar processamento
-    displayPrincipal.innerHTML = '<div style="text-align: center; padding: 120px; color: var(--text-muted); opacity: 0.5;">SINCRONIZANDO...</div>';
+    // Dispara a animação de cobertura
+    dispararTransicaoSuave();
     
     try {
         gerenciarCSSDaSecao(nome);
@@ -152,10 +192,10 @@ async function carregarSecao(nome) {
         
         const html = await response.text();
         
-        // Injeta o HTML (como no seu código original que funcionava)
+        // Substitui o conteúdo
         displayPrincipal.innerHTML = html;
 
-        // Re-executa os scripts para garantir que o Firebase renderize os dados
+        // Re-executa os scripts
         const scripts = displayPrincipal.querySelectorAll("script");
         scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
@@ -172,7 +212,7 @@ async function carregarSecao(nome) {
     }
 }
 
-// Eventos de clique nas categorias (Filtros)
+// Eventos de clique nas categorias
 document.querySelectorAll('.filter-tag').forEach(tag => {
     tag.addEventListener('click', () => {
         document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
@@ -196,6 +236,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Exposição global para integração entre arquivos
+// Exposição global
 window.carregarSecao = carregarSecao;
 window.abrirNoticiaUnica = abrirNoticiaUnica;
