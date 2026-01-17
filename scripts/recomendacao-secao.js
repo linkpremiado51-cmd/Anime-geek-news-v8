@@ -1,11 +1,10 @@
 /* ======================================================
-   AniGeekNews – Enterprise Section System v7
+   AniGeekNews – Enterprise Section System v7 (REVISADO)
    • Títulos de Sessão Clicáveis (Categorias Pai)
-   • Notificações Toast Profissionais (Sem Aler)
-   • Controle de Foco (Teclado não abre sozinho)j
-   • Design Harmônico
+   • Notificações Toast Silenciadas (Lógica Interna)
+   • Controle de Foco Otimizado
+   • Integração Total com navegacao.js
 ====================================================== */
-
 
 (function(){
 
@@ -19,12 +18,12 @@ const CONFIG = {
 };
 
 /* ===========================
-   BANCO DE DADOS (COM IDs NAS SESSÕES)
+   BANCO DE DADOS (CATÁLOGO OFICIAL)
 =========================== */
 const CATALOGO = [
   {
     sessao: "MANCHETES",
-    id: 'manchetes', // ID DA CATEGORIA PAI
+    id: 'manchetes', 
     cor: "#FF4500", 
     itens: [
       { id: 'destaques', label: 'Destaques do Dia' },
@@ -258,10 +257,9 @@ const CATALOGO = [
 ];
 
 /* ===========================
-   CSS INJETADO
+   CSS INJETADO (ESTILOS FIXOS)
 =========================== */
 const styles = `
-  /* --- LAYOUT DA GAVETA --- */
   #ag-drawer {
     background: #ffffff;
     border-bottom: 1px solid #e0e0e0;
@@ -273,374 +271,74 @@ const styles = `
     position: absolute;
     left: 0;
     z-index: 1000;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
   }
+  body.dark-mode #ag-drawer { background: #141414; border-color: #333; }
+  #ag-drawer.open { max-height: 85vh; opacity: 1; }
+  .ag-drawer-scroll { max-height: 85vh; overflow-y: auto; padding: 30px 20px; }
   
-  body.dark-mode #ag-drawer {
-    background: #141414;
-    border-color: #333;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-  }
-
-  #ag-drawer.open {
-    max-height: 85vh;
-    opacity: 1;
-  }
-
-  .ag-drawer-scroll {
-    max-height: 85vh;
-    overflow-y: auto;
-    padding: 30px 20px;
-    scrollbar-width: thin;
-  }
-
-  /* --- HEADER: PESQUISA E MODOS (ESTÉTICA HIGH-END) --- */
   .ag-drawer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    max-width: 1200px;
-    
-    /* Fixação no topo com efeito vidro */
-    position: sticky;
-    top: -30px; /* Alinhado ao topo do container */
-    z-index: 100;
-    margin: -30px auto 30px auto; 
-    padding: 25px 0;
-    
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    transition: background 0.3s ease;
+    display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+    max-width: 1200px; position: sticky; top: -30px; z-index: 100; margin: -30px auto 30px auto; padding: 25px 0;
+    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px);
   }
+  body.dark-mode .ag-drawer-header { background: rgba(20, 20, 20, 0.9); }
 
-  body.dark-mode .ag-drawer-header {
-    background: rgba(20, 20, 20, 0.85);
-    border-color: rgba(255, 255, 255, 0.08);
+  .ag-search-wrapper { position: relative; flex: 1; min-width: 280px; }
+  .ag-search-input { 
+    width: 100%; padding: 11px 15px 11px 45px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.04); font-size: 14px; outline: none; 
   }
+  body.dark-mode .ag-search-input { background: rgba(255,255,255,0.05); color: #fff; }
 
-  /* Efeito de degradê inferior para suavizar a rolagem dos itens */
-  .ag-drawer-header::after {
-    content: '';
-    position: absolute;
-    bottom: -20px;
-    left: 0;
-    width: 100%;
-    height: 20px;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
-    pointer-events: none;
-  }
-  
-  body.dark-mode .ag-drawer-header::after {
-    background: linear-gradient(to bottom, rgba(20, 20, 20, 0.9), transparent);
-  }
+  .ag-mode-group { background: rgba(0,0,0,0.05); padding: 4px; border-radius: 10px; display: flex; }
+  .ag-mode-btn { padding: 8px 16px; border: none; background: transparent; border-radius: 7px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; color: #888; }
+  .ag-mode-btn.active { background: #fff; color: #000; }
+  body.dark-mode .ag-mode-btn.active { background: #333; color: #fff; }
 
-  .ag-search-wrapper {
-    position: relative;
-    flex: 1;
-    min-width: 280px;
-  }
-
-  .ag-search-icon-svg {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    fill: #999;
-    pointer-events: none;
-  }
-
-  .ag-search-input {
-    width: 100%;
-    padding: 11px 15px 11px 45px;
-    border-radius: 10px;
-    border: 1px solid rgba(0,0,0,0.1);
-    background: rgba(0,0,0,0.04);
-    font-size: 14px;
-    font-weight: 500;
-    outline: none;
-    transition: all 0.3s ease;
-  }
-
-  body.dark-mode .ag-search-input {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.1);
-    color: #fff;
-  }
-  
-  .ag-search-input:focus {
-    background: #fff;
-    border-color: var(--primary-color, #e50914);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-  }
-  body.dark-mode .ag-search-input:focus { background: #252525; }
-
-  /* --- BOTÕES DE MODO --- */
-  .ag-mode-group {
-    background: rgba(0,0,0,0.05);
-    padding: 4px;
-    border-radius: 10px;
-    display: flex;
-  }
-  body.dark-mode .ag-mode-group { background: rgba(255,255,255,0.08); }
-
-  .ag-mode-btn {
-    padding: 8px 16px;
-    border: none;
-    background: transparent;
-    border-radius: 7px;
-    font-size: 11px;
-    font-weight: 800;
-    color: #888;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.2s;
-  }
-
-  .ag-mode-btn.active {
-    background: #fff;
-    color: #000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  }
-  body.dark-mode .ag-mode-btn.active {
-    background: #333;
-    color: #fff;
-  }
-
-
-  /* --- SESSÕES (CABEÇALHOS CLICÁVEIS) --- */
-  .ag-section-block {
-    margin-bottom: 35px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* Estilo do título que agora é um botão */
-  .ag-section-header-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    background: transparent;
-    border: none;
-    padding: 5px 0;
-    cursor: pointer;
-    width: fit-content;
-    transition: 0.2s;
-  }
-
-  .ag-section-header-btn:hover {
-    opacity: 0.7;
-  }
-
-  .ag-section-text {
-    font-size: 14px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #333;
-  }
+  .ag-section-block { margin-bottom: 35px; max-width: 1200px; margin: 0 auto 35px auto; }
+  .ag-section-header-btn { display: flex; align-items: center; gap: 10px; background: none; border: none; cursor: pointer; padding: 5px 0; }
+  .ag-section-text { font-size: 14px; font-weight: 900; text-transform: uppercase; color: #333; }
   body.dark-mode .ag-section-text { color: #fff; }
+  .ag-section-header-btn.is-active .ag-section-text { color: #e50914; text-decoration: underline; }
 
-  /* Indicador visual de que o título está selecionado */
-  .ag-section-header-btn.is-active .ag-section-text {
-    color: var(--primary-color, #e50914);
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 4px;
+  .ag-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .ag-card { 
+    background: #f9f9f9; border-radius: 6px; padding: 12px; font-size: 13px; text-align: center; cursor: pointer;
+    position: relative; transition: 0.2s; border: 1px solid transparent;
   }
+  body.dark-mode .ag-card { background: #1e1e1e; color: #ccc; }
+  .ag-card.is-selected { border-color: #e50914; color: #e50914; font-weight: 700; }
 
-  .ag-section-marker {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+  #filterScroller { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .filter-tag.cfg-btn { 
+    position: sticky; right: 0; z-index: 99; background: rgba(255, 255, 255, 0.95);
+    min-width: 48px; height: 34px; border: none; cursor: pointer; font-size: 18px; 
   }
-
-  /* --- GRID --- */
-  .ag-grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
-    gap: 10px;
-  }
-
-  .ag-card {
-    position: relative;
-    background: #f9f9f9;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    padding: 12px 10px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #444;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    height: 100%; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  body.dark-mode .ag-card {
-    background: #1e1e1e;
-    color: #ccc;
-  }
-
-  .ag-card:hover {
-    background: #ececec;
-    transform: translateY(-2px);
-  }
-  body.dark-mode .ag-card:hover { background: #2a2a2a; }
-
-  .ag-card.is-selected {
-    background: #fff;
-    border-color: var(--primary-color, #e50914);
-    color: var(--primary-color, #e50914);
-    box-shadow: inset 0 0 0 1px var(--primary-color, #e50914);
-    font-weight: 700;
-  }
-  body.dark-mode .ag-card.is-selected { background: #1a1a1a; }
-
-  .ag-card-action {
-    position: absolute;
-    top: 3px;
-    right: 4px;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    border-radius: 50%;
-    color: inherit;
-    opacity: 0.6;
-    transition: 0.2s;
-  }
-  
-  .ag-card-action:hover {
-    background: var(--primary-color, #e50914);
-    color: #fff !important;
-    opacity: 1;
-  }
-
-
-function showToast(message, type = 'normal') {
-  // Silenciado: nada será exibido na tela
-}
-
-  
-  @keyframes agFadeOut {
-    to { opacity: 0; transform: translateY(-10px); }
-  }
-     /* --- AJUSTE PARA BOTÃO PROFISSIONAL E FIXO --- */
-  #filterScroller {
-    display: flex;
-    align-items: center;
-    position: relative;
-    gap: 8px;
-    padding-right: 0 !important;
-    overflow-x: auto;
-    scrollbar-width: none; /* Esconde scroll no Firefox */
-  }
-  #filterScroller::-webkit-scrollbar { display: none; } /* Esconde scroll no Chrome/Safari */
-
-  .filter-tag.cfg-btn {
-    position: sticky;
-    right: 0 !important;
-    z-index: 99;
-    
-    /* Estética Profissional: Glassmorphism */
-    background: rgba(255, 255, 255, 0.9); 
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    
-    min-width: 48px;
-    height: 34px;
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* Borda e Sombra refinadas */
-    border: none;
-    border-left: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.05);
-    
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.3s ease;
-  }
-
-  /* Efeito de degradê para as abas sumirem suavemente atrás do botão */
-  .filter-tag.cfg-btn::before {
-    content: '';
-    position: absolute;
-    left: -20px;
-    top: 0;
-    width: 20px;
-    height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.9));
-    pointer-events: none;
-  }
-
-  /* Ajustes para o Dark Mode */
-  body.dark-mode .filter-tag.cfg-btn {
-    background: rgba(20, 20, 20, 0.9);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: -15px 0 25px rgba(0, 0, 0, 0.5);
-  }
-
-  body.dark-mode .filter-tag.cfg-btn::before {
-    background: linear-gradient(to right, transparent, rgba(20, 20, 20, 0.9));
-  }
-
-  /* Feedback visual ao tocar/clicar */
-  .filter-tag.cfg-btn:active {
-    transform: scale(0.9);
-    opacity: 0.8;
-  }
-
-
-
+  body.dark-mode .filter-tag.cfg-btn { background: rgba(20, 20, 20, 0.95); color: #fff; }
 `;
 
 const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-function showToast(message, type = 'normal') {
-  // Silenciado
-}
-
 /* ===========================
-   LÓGICA CORE
+   SISTEMA DE DADOS (LOCALSTORAGE)
 =========================== */
 function load(k,d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch(e){ return d } }
 function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
 
-function getMode(){ return load(CONFIG.KEYS.MODE, 'dynamic'); }
-function setMode(m){ save(CONFIG.KEYS.MODE, m); renderDrawer(); }
+const getMode = () => load(CONFIG.KEYS.MODE, 'dynamic');
+const setMode = (m) => { save(CONFIG.KEYS.MODE, m); renderDrawer(); };
 
 function getOrder(){
-  const saved = load(CONFIG.KEYS.ORDER, null);
-  if(saved) return saved;
-  // Padrão inicial com alguns IDs
-  return ['manchetes', 'destaques', 'ultimas'];
+  let order = load(CONFIG.KEYS.ORDER, ['manchetes', 'destaques', 'ultimas']);
+  // Limpeza de IDs inválidos que possam ter ficado no storage
+  return order.filter(id => findItem(id) !== null);
 }
 
-// Encontra ITEM ou CATEGORIA PAI pelo ID
 function findItem(id){
   for(let sec of CATALOGO){
-    // Verifica se é a própria categoria
     if(sec.id === id) return { id: sec.id, label: sec.sessao };
-    // Verifica itens internos
     const item = sec.itens.find(i => i.id === id);
     if(item) return item;
   }
@@ -654,12 +352,13 @@ function track(id){
   save(CONFIG.KEYS.STATS, stats);
   
   const order = getOrder();
+  // Ordena os itens existentes por popularidade
   order.sort((a,b) => (stats[b]||0) - (stats[a]||0));
   save(CONFIG.KEYS.ORDER, order);
 }
 
 /* ===========================
-   RENDERIZAÇÃO BARRA HORIZONTAL
+   RENDERIZAÇÃO DA BARRA DE ABAS
 =========================== */
 function renderBar(){
   const bar = document.getElementById('filterScroller');
@@ -682,14 +381,22 @@ function renderBar(){
     const btn = document.createElement('button');
     btn.className = 'filter-tag';
     btn.textContent = item.label;
+    
+    // Verifica se esta aba é a que deve estar ativa (pela URL ou padrão)
+    const params = new URLSearchParams(window.location.search);
+    if(!params.has('id') && id === 'manchetes') btn.classList.add('active');
+
     btn.onclick = () => {
       document.querySelectorAll('#filterScroller .filter-tag').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       track(id);
       document.getElementById('ag-drawer').classList.remove('open');
       
-      if(window.carregarSecao) window.carregarSecao(id);
-      else console.log("Carregando:", id);
+      if(window.carregarSecao) {
+          window.carregarSecao(id);
+      } else {
+          console.error("Navegação não carregada.");
+      }
     };
     bar.appendChild(btn);
   });
@@ -702,7 +409,7 @@ function renderBar(){
 }
 
 /* ===========================
-   GAVETA (DRAWER)
+   CONTROLE DA GAVETA
 =========================== */
 function toggleDrawer(){
   const drawer = document.getElementById('ag-drawer');
@@ -713,7 +420,6 @@ function toggleDrawer(){
   } else {
     renderDrawer();
     drawer.classList.add('open');
-    // REMOVIDO: setTimeout com focus() para não abrir o teclado
   }
 }
 
@@ -722,37 +428,25 @@ function renderDrawer(filterText = ""){
   const currentOrder = getOrder();
   const currentMode = getMode();
 
-  const searchIcon = `<svg class="ag-search-icon-svg" viewBox="0 0 24 24"><path d="M21.71 20.29l-5.01-5.01C17.54 13.68 18 11.91 18 10c0-4.41-3.59-8-8-8S2 5.59 2 10s3.59 8 8 8c1.91 0 3.68-.46 5.28-1.3l5.01 5.01c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41z"/></svg>`;
-
-  let html = `
+  drawer.innerHTML = `
     <div class="ag-drawer-scroll">
       <div class="ag-drawer-header">
         <div class="ag-search-wrapper">
-          ${searchIcon}
-          <input type="text" class="ag-search-input" id="ag-search-input" placeholder="Pesquisar..." value="${filterText}">
+          <input type="text" class="ag-search-input" id="ag-search-input" placeholder="Pesquisar categoria..." value="${filterText}">
         </div>
-        
         <div class="ag-mode-group">
           <button id="btn-fixo" class="ag-mode-btn ${currentMode==='fixed'?'active':''}">Fixo</button>
-          <button id="btn-dinamico" class="ag-mode-btn ${currentMode==='dynamic'?'active':''}">Automático</button>
+          <button id="btn-dinamico" class="ag-mode-btn ${currentMode==='dynamic'?'active':''}">Auto</button>
         </div>
       </div>
-
       <div id="ag-catalog-container"></div>
-      
-      <div style="text-align:center; padding-top:20px; font-size:12px; color:#888;">
-        ${currentOrder.length} de ${CONFIG.MAX_TABS} abas ativas
-      </div>
     </div>
   `;
-
-  drawer.innerHTML = html;
 
   const container = document.getElementById('ag-catalog-container');
   const term = filterText.toLowerCase();
 
   CATALOGO.forEach(sec => {
-    // Filtragem
     const itensFiltrados = sec.itens.filter(i => i.label.toLowerCase().includes(term));
     const sessaoMatch = sec.sessao.toLowerCase().includes(term);
 
@@ -762,25 +456,17 @@ function renderDrawer(filterText = ""){
     const sectionDiv = document.createElement('div');
     sectionDiv.className = 'ag-section-block';
 
-    // VERIFICA SE A CATEGORIA PAI JÁ ESTÁ SELECIONADA
     const isCatSelected = currentOrder.includes(sec.id);
-    let catIcon = '';
-    if(isCatSelected) {
-       catIcon = currentMode === 'dynamic' ? ' <span style="font-size:10px; opacity:0.6; margin-left:5px">✕</span>' : ' <span style="font-size:10px; opacity:0.6; margin-left:5px">•••</span>';
-    }
-
-    // TÍTULO DA SESSÃO AGORA É UM BOTÃO
+    
     sectionDiv.innerHTML = `
       <button class="ag-section-header-btn ${isCatSelected ? 'is-active' : ''}" data-cat-id="${sec.id}">
-        <div class="ag-section-marker" style="background:${sec.cor}"></div>
-        <span class="ag-section-text">${sec.sessao}${catIcon}</span>
+        <div style="width:10px; height:10px; border-radius:2px; background:${sec.cor}"></div>
+        <span class="ag-section-text">${sec.sessao}</span>
       </button>
       <div class="ag-grid-container"></div>
     `;
     
-    // Evento de clique no título da seção (Pai)
-    sectionDiv.querySelector('.ag-section-header-btn').onclick = (e) => {
-        // Se já tem seleção, verifica se é pra mover ou deletar
+    sectionDiv.querySelector('.ag-section-header-btn').onclick = () => {
         if(isCatSelected && currentMode === 'fixed') {
              handleAction(sec.id, sec.sessao);
         } else {
@@ -788,37 +474,24 @@ function renderDrawer(filterText = ""){
         }
     };
 
-    container.appendChild(sectionDiv);
     const grid = sectionDiv.querySelector('.ag-grid-container');
-
-    // RENDERIZA OS ITENS FILHOS
     itensParaMostrar.forEach(item => {
       const isSelected = currentOrder.includes(item.id);
-      
       const card = document.createElement('div');
       card.className = `ag-card ${isSelected ? 'is-selected' : ''}`;
-      
-      let actionIcon = '';
-      if(isSelected) {
-        actionIcon = currentMode === 'dynamic' ? '✕' : '•••';
-      }
-
-      card.innerHTML = `
-        ${item.label}
-        ${isSelected ? `<div class="ag-card-action" data-id="${item.id}" data-action="true">${actionIcon}</div>` : ''}
-      `;
+      card.innerHTML = `${item.label} ${isSelected ? '<span style="float:right; opacity:0.5">✕</span>' : ''}`;
 
       card.onclick = (e) => {
-        if(e.target.dataset.action || e.target.parentNode.dataset.action) {
-          e.stopPropagation();
-          handleAction(item.id, item.label);
-          return;
+        if(isSelected) {
+            handleAction(item.id, item.label);
+        } else {
+            toggleItem(item.id, item.label);
         }
-        toggleItem(item.id, item.label);
       };
-
       grid.appendChild(card);
     });
+
+    container.appendChild(sectionDiv);
   });
 
   document.getElementById('ag-search-input').oninput = (e) => renderDrawer(e.target.value);
@@ -827,29 +500,21 @@ function renderDrawer(filterText = ""){
 }
 
 /* ===========================
-   AÇÕES & NOTIFICAÇÕES
+   LÓGICA DE ADICIONAR/REMOVER
 =========================== */
 function toggleItem(id, label){
   let order = getOrder();
   
   if(order.includes(id)){
-    // Remove
     order = order.filter(x => x !== id);
-    showToast(`Removido: <b>${label}</b>`, 'normal');
   } else {
-    // Adiciona com verificação de limite
-    if(order.length >= CONFIG.MAX_TABS) {
-      showToast(`Limite de ${CONFIG.MAX_TABS} abas atingido!`, 'error');
-      return;
-    }
+    if(order.length >= CONFIG.MAX_TABS) return;
     order.push(id);
-    showToast(`Adicionado: <b>${label}</b>`, 'success');
   }
   
   save(CONFIG.KEYS.ORDER, order);
   renderBar();
-  // Atualiza apenas visualmente sem perder estado do input se possível, ou re-renderiza
-  renderDrawer(document.getElementById('ag-search-input').value);
+  renderDrawer(document.getElementById('ag-search-input')?.value || "");
 }
 
 function handleAction(id, label){
@@ -859,11 +524,9 @@ function handleAction(id, label){
   if(mode === 'dynamic') {
     order = order.filter(x => x !== id);
     save(CONFIG.KEYS.ORDER, order);
-    showToast(`Removido: <b>${label}</b>`);
     renderBar();
-    renderDrawer(document.getElementById('ag-search-input').value);
+    renderDrawer(document.getElementById('ag-search-input')?.value || "");
   } else {
-    // Modo Fixo: Prompt simples (pode ser melhorado para modal depois, mas cumpre o requisito)
     const currentIndex = order.indexOf(id);
     const newPos = prompt(`Mover "${label}" para qual posição? (1-${order.length})`, currentIndex + 1);
     
@@ -874,15 +537,17 @@ function handleAction(id, label){
         order.splice(targetIndex, 0, id);
         save(CONFIG.KEYS.ORDER, order);
         renderBar();
-        renderDrawer(document.getElementById('ag-search-input').value);
-        showToast(`<b>${label}</b> movido para posição ${newPos}`);
+        renderDrawer(document.getElementById('ag-search-input')?.value || "");
       }
     }
   }
 }
 
-/* Inicialização */
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderBar);
-else renderBar();
+// Inicialização segura
+if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderBar);
+} else {
+    renderBar();
+}
 
 })();
