@@ -1,0 +1,108 @@
+<div class="mega-menu-overlay" id="megaOverlay">
+    <button class="close-mega" id="btnFecharMega" type="button">×</button>
+
+    <!-- ===============================
+         🔥 ÁREA DO USUÁRIO
+    ================================ -->
+    <div class="mega-user-area">
+        <div class="user-cover" id="userCover"></div>
+
+        <!-- ===============================
+             🔓 NÃO LOGADO
+        ================================ -->
+        <div
+            class="user-auth user-logged-out"
+            data-auth="logged-out"
+            id="menuUserLoggedOut"
+        >
+            <p class="user-msg">Entre ou crie sua conta</p>
+
+            <div class="user-actions">
+                <a
+                    href="javascript:void(0)"
+                    class="btn-login"
+                    id="btnAbrirLogin"
+                    role="button"
+                >
+                    Entrar
+                </a>
+
+                <a
+                    href="javascript:void(0)"
+                    class="btn-signup"
+                    id="btnAbrirCadastro"
+                    role="button"
+                >
+                    Criar conta
+                </a>
+            </div>
+        </div>
+
+        <!-- ===============================
+             🔐 LOGADO
+        ================================ -->
+        <div
+            class="user-auth user-logged-in"
+            data-auth="logged-in"
+            id="menuUserLoggedIn"
+            style="display: none;"
+        >
+            <p class="user-welcome">
+                Bem-vindo,
+                <strong id="userName">Usuário</strong>
+            </p>
+
+            <button
+                class="btn-logout"
+                id="btnLogoutMenu"
+                title="Sair"
+                type="button"
+            >
+                Sair
+            </button>
+        </div>
+    </div>
+
+    <!-- ===============================
+         🔥 CONTEÚDO DO MEGA MENU
+    ================================ -->
+    <div class="mega-menu-content">
+        <div class="menu-col">
+            <h3>Seções</h3>
+            <ul>
+                <li><a href="#" data-secao="manchetes">Animes</a></li>
+                <li><a href="#" data-secao="tecnologia">Tecnologia</a></li>
+                <li><a href="#" data-secao="smartphones">Smartphones</a></li>
+                <li><a href="#" data-secao="lancamentos">Lançamentos</a></li>
+                <li><a href="#" data-secao="podcast">Podcast</a></li>
+            </ul>
+        </div>
+
+        <div class="menu-col">
+            <h3>Mundo Geek</h3>
+            <ul>
+                <li><a href="#" data-secao="eventos">Eventos</a></li>
+                <li><a href="#" data-secao="cosplay">Cosplay</a></li>
+                <li><a href="#" data-secao="quadrinhos">Quadrinhos</a></li>
+                <li><a href="#" data-secao="cultura-pop">Cultura Pop</a></li>
+            </ul>
+        </div>
+
+        <div class="menu-col">
+            <h3>Podcasts</h3>
+            <div class="menu-highlight">
+                <h4>O Diário AniGeek</h4>
+                <p>As maiores notícias geek do dia.</p>
+            </div>
+        </div>
+
+        <div class="menu-col">
+            <h3>Boletins</h3>
+            <div class="promo-box">
+                <h4>A Manhã</h4>
+                <p>Resumo diário da cultura pop.</p>
+                <button type="button">INSCREVER-SE</button>
+            </div>
+        </div>
+    </div>
+</div>
