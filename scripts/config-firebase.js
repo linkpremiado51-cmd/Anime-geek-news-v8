@@ -1,5 +1,6 @@
 /* scripts/config-firebase.js */
 
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -20,7 +21,7 @@ window.noticiasFirebase = [];
 let linkProcessado = false;
 
 /**
- * Normaliza os dados extraindo a imagem (thumb) e formatando o vídeo.
+ * Normaliza os dadOs extraindo a imagem (thumb) e formatando o vídeo.
  */
 function normalizarNoticia(doc, nomeColecao) {
     const data = doc.data();

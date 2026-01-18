@@ -1,6 +1,7 @@
 /* scripts/auth.js */
 /* UI GLOBAL — SEM Firebase */
 
+
 (function () {
 
     function renderUsuarioDeslogado() {

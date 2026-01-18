@@ -1,5 +1,6 @@
 /* scripts/busca.js */
 
+
 const inputBusca = document.getElementById('input-busca-global');
 const surface = document.getElementById('search-results-surface');
 let timeoutBusca = null;
@@ -38,7 +39,7 @@ if (inputBusca) {
         }
 
         timeoutBusca = setTimeout(() => {
-            // IMPORTANTE: Verifica se o array existe e tem dados
+            // IMPORTaNTE: Verifica se o array existe e tem dados
             const bancoDeDados = window.noticiasFirebase || [];
             
             console.log(`🔍 Buscando por "${termo}" em ${bancoDeDados.length} notícias.`);

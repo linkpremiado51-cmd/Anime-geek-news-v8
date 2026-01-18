@@ -1,10 +1,11 @@
 /* ======================================================
    AniGeekNews – Enterprise Section System v7
    • Títulos de Sessão Clicáveis (Categorias Pai)
-   • Notificações Toast Profissionais (Sem Alert)
+   • Notificações Toast Profissionais (Sem Aler)
    • Controle de Foco (Teclado não abre sozinho)j
    • Design Harmônico
 ====================================================== */
+
 
 (function(){
 

@@ -33,7 +33,7 @@ if (!document.getElementById('modal-noticia-global')) {
 }
 
 /**
- * Atualiza as Meta Tags para SEO dinâmico e Título da Aba
+ * Atualiza as Meta Tags para SEO dinamico e Título da Aba
  */
 const atualizarSEO = (noticia) => {
     // 1. Atualiza o título da aba do navegador

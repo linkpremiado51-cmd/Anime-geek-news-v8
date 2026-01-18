@@ -8,7 +8,7 @@
     adsRoot.id = 'premium-ads-system';
     document.body.appendChild(adsRoot);
 
-    // === 2. ESTILIZAÇÃO IMPECÁVEL ===
+    // === 2. ESTILIZAÇÃO IMPECÁvEL ===
     const style = document.createElement('style');
     style.textContent = `
         #premium-ads-system { 
