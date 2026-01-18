@@ -1,275 +1,245 @@
-/* scripts/navegacao.js - Versão Enterprise: Higiene de DOM & Animação Persistente */
-
-const displayPrincipal = document.getElementById('conteudo_de_destaque');
-let bloqueioDeNavegacao = false; // Trava contra cliques frenéticos
-let currentFetchController = null; // Para cancelar requisições antigas
-
-// --- CONFIGURAÇÃO DE TEMPO (Total: 2s) ---
-const TEMPO_FADE_OUT = 800; // 0.8s sumindo
-const TEMPO_ESPERA = 400;   // 0.4s processando (tela limpa)
-const TEMPO_FADE_IN = 800;  // 0.8s aparecendo
+/* scripts/navegacao.js - Versão Ultra-Enterprise: Anti-Race Condition & DOM Hijacking */
 
 /**
- * 1. SUPRESSOR DE RUÍDO VISUAL
- * Cria um estilo temporário que esconde notificações e menus flutuantes
- * vindos de outros scripts durante a transição.
+ * CONFIGURAÇÃO E ESTADO GLOBAL (SINGLETON)
  */
-const styleSupressor = document.createElement('style');
-styleSupressor.innerHTML = `
-    body.is-transitioning .ag-toast,
-    body.is-transitioning #ag-toast-container,
-    body.is-transitioning .notificacao-flutuante,
-    body.is-transitioning #ag-drawer {
-        opacity: 0 !important;
-        pointer-events: none !important;
-        transition: none !important;
+const NAV_STATE = {
+    isTransitioning: false,
+    currentTransitionId: 0,
+    fetchController: null,
+    display: document.getElementById('conteudo_de_destaque'),
+    config: {
+        FADE_OUT: 400, // Reduzido para maior responsividade
+        ESPERA: 200,
+        FADE_IN: 500
     }
-`;
-document.head.appendChild(styleSupressor);
+};
 
 /**
- * 2. LIMPEZA PROFUNDA (GARBAGE COLLECTION)
+ * 1. SUPRESSOR DE INTERFERÊNCIA EXTERNA
  */
-function limparAmbiente() {
-    // Remove scripts dinâmicos anteriores
+const injectGlobalResetCSS = () => {
+    if (document.getElementById('nav-reset-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'nav-reset-styles';
+    style.innerHTML = `
+        body.nav-loading * { pointer-events: none !important; }
+        body.nav-loading .ag-toast, body.nav-loading #ag-drawer { 
+            display: none !important; opacity: 0 !important; 
+        }
+        .section-fade-container {
+            transition: opacity ${NAV_STATE.config.FADE_IN}ms ease, transform ${NAV_STATE.config.FADE_IN}ms ease;
+        }
+    `;
+    document.head.appendChild(style);
+};
+injectGlobalResetCSS();
+
+/**
+ * 2. LIMPEZA PROFUNDA E PREVENÇÃO DE "GHOST SCRIPTS"
+ */
+function deepCleanDOM() {
+    // Remove scripts de sessões anteriores
     document.querySelectorAll('script[data-motor="dinamico"]').forEach(s => s.remove());
     
-    // Reseta funções globais para evitar execução fantasma
-    window.renderizarNoticias = null; 
+    // Remove estilos específicos de seção para evitar conflitos de cores/layout
+    document.querySelectorAll('link[id="css-secao-dinamica"]').forEach(l => l.remove());
 
-    // Remove CSS de seções anteriores para não conflitar
-    const cssAntigo = document.getElementById('css-secao-dinamica');
-    if (cssAntigo) cssAntigo.remove();
-}
-
-/**
- * 3. CONTROLADOR DE TRANSIÇÃO (CORE)
- */
-function aplicarTransicaoConteudo(callback) {
-    if (!displayPrincipal) return;
+    // Limpa referências globais de renderização para evitar conflito de dados
+    window.renderizarNoticias = null;
     
-    // Evita sobreposição de animações
-    if (bloqueioDeNavegacao) return; 
-    bloqueioDeNavegacao = true;
-
-    // Marca o body para ativar o CSS Supressor (esconde toasts)
-    document.body.classList.add('is-transitioning');
-
-    // --- FASE 1: FADE OUT ---
-    displayPrincipal.style.transition = `opacity ${TEMPO_FADE_OUT}ms ease-in-out, transform ${TEMPO_FADE_OUT}ms ease-in-out`;
-    displayPrincipal.style.opacity = '0';
-    displayPrincipal.style.transform = 'translateY(15px)';
-
-    setTimeout(async () => {
-        // --- FASE 2: HARD RESET (Tela Vazia) ---
-        displayPrincipal.innerHTML = ''; 
-        limparAmbiente();
-        window.scrollTo({ top: 0, behavior: 'auto' }); // Reset imediato do scroll
-
-        try {
-            await callback(); // Executa o carregamento (fetch)
-        } catch (e) {
-            console.error("Erro controlado:", e);
-            displayPrincipal.innerHTML = '<div style="padding:50px; text-align:center">Erro ao carregar conteúdo.</div>';
-        }
-
-        // Delay intencional para sensação "Premium"
-        setTimeout(() => {
-            // TRUQUE: Força o navegador a recalcular o layout (Reflow)
-            // Isso garante que a animação de entrada funcione TODAS as vezes
-            void displayPrincipal.offsetWidth;
-
-            // --- FASE 3: FADE IN ---
-            displayPrincipal.style.transition = `opacity ${TEMPO_FADE_IN}ms ease-out, transform ${TEMPO_FADE_IN}ms ease-out`;
-            displayPrincipal.style.opacity = '1';
-            displayPrincipal.style.transform = 'translateY(0)';
-            
-            // Finalização
-            setTimeout(() => {
-                bloqueioDeNavegacao = false;
-                document.body.classList.remove('is-transitioning'); // Devolve os toasts/menus
-            }, TEMPO_FADE_IN);
-
-        }, TEMPO_ESPERA);
-
-    }, TEMPO_FADE_OUT);
+    // Mata qualquer animação pendente no container
+    if (NAV_STATE.display) {
+        NAV_STATE.display.innerHTML = '';
+        NAV_STATE.display.getAnimations().forEach(anim => anim.cancel());
+    }
 }
 
 /**
- * 4. GERENCIADOR DE CSS
+ * 3. CONTROLADOR DE FLUXO SEGURO (O Coração do Script)
  */
-function gerenciarCSSDaSecao(nome) {
-    // Cria novo link
-    const novoLink = document.createElement('link');
-    novoLink.id = 'css-secao-dinamica';
-    novoLink.rel = 'stylesheet';
-    novoLink.href = `./estilos/secoes/${nome}.css`; 
-    document.head.appendChild(novoLink);
-}
+async function flowManager(sectionId, task) {
+    // Incrementa ID de transição para invalidar processos anteriores
+    const transitionId = ++NAV_STATE.currentTransitionId;
+    
+    // Cancela qualquer fetch em andamento imediatamente
+    if (NAV_STATE.fetchController) NAV_STATE.fetchController.abort();
+    NAV_STATE.fetchController = new AbortController();
 
-/**
- * 5. PROCESSADOR DE SCRIPTS
- */
-function processarScripts(htmlContent) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, 'text/html');
-    const scripts = doc.querySelectorAll("script");
+    NAV_STATE.isTransitioning = true;
+    document.body.classList.add('nav-loading');
 
-    scripts.forEach(oldScript => {
-        const newScript = document.createElement("script");
-        newScript.setAttribute('data-motor', 'dinamico'); // Tag para limpeza futura
+    // --- FASE 1: Fade Out ---
+    NAV_STATE.display.style.opacity = '0';
+    NAV_STATE.display.style.transform = 'translateY(10px)';
+
+    await new Promise(r => setTimeout(r, NAV_STATE.config.FADE_OUT));
+
+    // Se o usuário já clicou em outra coisa, aborta ESTA execução aqui
+    if (transitionId !== NAV_STATE.currentTransitionId) return;
+
+    deepCleanDOM();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    try {
+        await task(NAV_STATE.fetchController.signal);
         
-        if (oldScript.type === 'module' || !oldScript.type) {
-            let conteudo = oldScript.textContent;
-            if (conteudo.includes('function renderizarNoticias')) {
-                conteudo += `\n window.renderizarNoticias = renderizarNoticias;`;
-            }
-            newScript.type = 'module';
-            newScript.textContent = conteudo;
-        } else {
-            if (oldScript.src) newScript.src = oldScript.src;
-            newScript.textContent = oldScript.textContent;
-        }
-        document.body.appendChild(newScript);
-    });
+        // Verifica novamente se ainda somos a transição ativa após o await (Network delay)
+        if (transitionId !== NAV_STATE.currentTransitionId) return;
+
+        // --- FASE 2: Recalcular e Fade In ---
+        setTimeout(() => {
+            void NAV_STATE.display.offsetWidth; // Force Reflow
+            NAV_STATE.display.style.opacity = '1';
+            NAV_STATE.display.style.transform = 'translateY(0)';
+            
+            document.body.classList.remove('nav-loading');
+            NAV_STATE.isTransitioning = false;
+        }, NAV_STATE.config.ESPERA);
+
+    } catch (err) {
+        if (err.name === 'AbortError') return; // Silencia erro de cancelamento proposital
+        console.error("Erro na Navegação:", err);
+        NAV_STATE.display.innerHTML = `<div class="error-msg">Falha ao carregar conteúdo.</div>`;
+        document.body.classList.remove('nav-loading');
+        NAV_STATE.isTransitioning = false;
+    }
 }
 
 /**
- * 6. CARREGADOR DE SEÇÃO (Network)
+ * 4. CARREGADOR DE CONTEÚDO
  */
 async function carregarSecao(nome) {
-    if (!displayPrincipal) return;
+    if (!nome) return;
 
-    // Cancela requisição anterior se houver (economia de dados)
-    if (currentFetchController) currentFetchController.abort();
-    currentFetchController = new AbortController();
-    const signal = currentFetchController.signal;
+    await flowManager(nome, async (signal) => {
+        // Carrega CSS
+        const link = document.createElement('link');
+        link.id = 'css-secao-dinamica';
+        link.rel = 'stylesheet';
+        link.href = `./estilos/secoes/${nome}.css`;
+        document.head.appendChild(link);
 
-    aplicarTransicaoConteudo(async () => {
-        gerenciarCSSDaSecao(nome);
-
-        // Fetch com timeout e sinal de cancelamento
+        // Carrega HTML
         const response = await fetch(`./secoes/${nome}.html`, { signal });
-        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+        if (!response.ok) throw new Error("Falha HTTP");
         
         const html = await response.text();
-        displayPrincipal.innerHTML = html;
-        processarScripts(html);
+        
+        // Sanitização rápida antes de injetar
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Move scripts para execução manual
+        const scripts = tempDiv.querySelectorAll('script');
+        NAV_STATE.display.innerHTML = tempDiv.innerHTML;
+        
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            newScript.setAttribute('data-motor', 'dinamico');
+            if (oldScript.src) {
+                newScript.src = oldScript.src;
+            } else {
+                newScript.textContent = oldScript.textContent;
+                // Garante exposição global se necessário
+                if (newScript.textContent.includes('renderizarNoticias')) {
+                    newScript.textContent += `\nwindow.renderizarNoticias = renderizarNoticias;`;
+                }
+            }
+            newScript.type = oldScript.type || 'module';
+            document.body.appendChild(newScript);
+        });
     });
 }
 
 /**
- * 7. VISUALIZADOR DE NOTÍCIA (Full Page)
+ * 5. HANDLER DE NOTÍCIA ÚNICA (PREVENÇÃO DE OVERLAY)
  */
 async function abrirNoticiaUnica(item) {
-    if (!displayPrincipal) return;
-    
-    if (currentFetchController) currentFetchController.abort();
+    if (!item || !item.id) return;
 
-    aplicarTransicaoConteudo(async () => {
-        gerenciarCSSDaSecao(item.origem || 'manchetes');
+    await flowManager(`noticia-${item.id}`, async (signal) => {
+        NAV_STATE.display.innerHTML = `
+            <div class="foco-noticia-wrapper section-fade-container">
+                <button onclick="window.voltarParaLista()" class="btn-voltar">
+                   <i class="fas fa-arrow-left"></i> VOLTAR
+                </button>
+                <div id="container-render-news">Carregando...</div>
+            </div>`;
 
-        displayPrincipal.innerHTML = `
-            <div class="foco-noticia-wrapper" style="max-width: var(--container-w); margin: 0 auto; padding: 20px;">
-                <div class="barra-ferramentas-foco" style="display: flex; justify-content: flex-start; padding-bottom: 20px; border-bottom: 1px dashed var(--border); margin-bottom: 30px;">
-                    <button onclick="window.voltarParaLista()" class="btn-voltar-estilizado" style="cursor: pointer; background: none; border: none; font-weight: 800; display: flex; align-items: center; gap: 10px; color: var(--text-main);">
-                        <i class="fa-solid fa-chevron-left"></i> 
-                        <span>VOLTAR PARA ${item.origem ? item.origem.toUpperCase() : 'INÍCIO'}</span>
-                    </button>
-                </div>
-                <div id="container-principal">
-                    <p style="text-align:center; padding:50px; opacity:0.5;">Carregando...</p>
-                </div>
-            </div>
-        `;
+        const response = await fetch(`./secoes/${item.origem || 'manchetes'}.html`, { signal });
+        const html = await response.text();
+        
+        // Injeta scripts da seção pai para ter as funções de renderização
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        temp.querySelectorAll('script').forEach(s => {
+            const ns = document.createElement('script');
+            ns.setAttribute('data-motor', 'dinamico');
+            ns.textContent = s.textContent;
+            ns.type = 'module';
+            document.body.appendChild(ns);
+        });
 
-        const response = await fetch(`./secoes/${item.origem || 'manchetes'}.html`);
-        const htmlBase = await response.text();
-        processarScripts(htmlBase);
-
-        // Polling inteligente para renderização
-        let tentativas = 0;
-        const tentarRenderizar = () => {
+        // Polling de renderização com limite de segurança
+        let attempts = 0;
+        const checkRender = setInterval(() => {
             if (typeof window.renderizarNoticias === 'function') {
-                const container = document.getElementById('container-principal');
-                if (container) {
-                    container.innerHTML = "";
+                const target = document.getElementById('container-render-news');
+                if (target) {
+                    target.innerHTML = '';
                     window.renderizarNoticias([item]);
                 }
-            } else if (tentativas < 40) { // Aumentei tentativas
-                tentativas++;
-                setTimeout(tentarRenderizar, 50);
+                clearInterval(checkRender);
             }
-        };
-        tentarRenderizar();
+            if (++attempts > 50) clearInterval(checkRender);
+        }, 50);
     });
 }
 
 /**
- * 8. GERENCIADOR DE ESTADO (URL & Back)
+ * 6. INICIALIZAÇÃO E EVENTOS
  */
-window.voltarParaLista = function() {
+window.voltarParaLista = () => {
     const url = new URL(window.location);
     url.searchParams.delete('id');
     window.history.pushState({}, '', url);
-    
-    const tagAtiva = document.querySelector('.filter-tag.active');
-    carregarSecao(tagAtiva ? tagAtiva.dataset.section : 'manchetes');
+    const ativa = document.querySelector('.filter-tag.active')?.dataset.section || 'manchetes';
+    carregarSecao(ativa);
 };
 
-function verificarLinkCompartilhado() {
-    const params = new URLSearchParams(window.location.search);
-    const idNoticia = params.get('id');
+// Intercepta cliques nas tags de filtro (Aprimorado)
+document.addEventListener('click', (e) => {
+    const tag = e.target.closest('.filter-tag');
+    if (!tag || tag.classList.contains('cfg-btn')) return;
 
-    if (idNoticia) {
-        // Intervalo de verificação do Firebase
-        const checkData = setInterval(() => {
-            if (window.noticiasFirebase && window.noticiasFirebase.length > 0) {
-                const item = window.noticiasFirebase.find(n => n.id === idNoticia);
-                if (item) {
-                    if (typeof window.abrirModalNoticia === 'function') {
-                        window.abrirModalNoticia(item);
-                        carregarSecao('manchetes'); // Carrega fundo
-                    } else {
-                        abrirNoticiaUnica(item);
-                    }
-                } else {
-                    carregarSecao('manchetes'); // Fallback
-                }
-                clearInterval(checkData);
-            }
-        }, 100);
-        setTimeout(() => clearInterval(checkData), 8000); // 8s timeout
-    }
-}
+    const section = tag.dataset.section || tag.textContent.trim().toLowerCase();
+    
+    // Se clicar na mesma aba, não faz nada
+    if (tag.classList.contains('active') && !new URLSearchParams(window.location.search).has('id')) return;
 
-// Eventos de Clique (Filtros)
-document.querySelectorAll('.filter-tag').forEach(tag => {
-    tag.addEventListener('click', () => {
-        if (bloqueioDeNavegacao) return; // Respeita a transição
-        if (tag.classList.contains('active')) return; // Não recarrega a mesma aba
-
-        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-        tag.classList.add('active');
-        carregarSecao(tag.dataset.section);
-    });
+    document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+    tag.classList.add('active');
+    
+    carregarSecao(section);
 });
 
-window.toggleMobileMenu = function() {
-    const menu = document.getElementById('mobileMenu');
-    if (menu) menu.classList.toggle('active');
-};
-
-// Inicialização Segura
-window.addEventListener('DOMContentLoaded', () => {
+// Suporte ao botão "Voltar" do Navegador
+window.addEventListener('popstate', () => {
     const params = new URLSearchParams(window.location.search);
     if (params.has('id')) {
-        verificarLinkCompartilhado();
+        location.reload(); // Simplificado para garantir integridade no back button
     } else {
         carregarSecao('manchetes');
     }
 });
 
-// Exposição Global
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) carregarSecao('manchetes');
+});
+
+// Exportação Global
 window.carregarSecao = carregarSecao;
 window.abrirNoticiaUnica = abrirNoticiaUnica;
