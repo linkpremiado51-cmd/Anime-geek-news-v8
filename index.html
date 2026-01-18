@@ -1,4 +1,4 @@
-se<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -11,13 +11,13 @@ se<!DOCTYPE html>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Cormorant+Garamond:wght@400;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <link rel="stylesheet" href="estilos/geral.css">
-    <link rel="stylesheet" href="estilos/cabecalho-rodape.css">
-    <link rel="stylesheet" href="estilos/componentes.css">
-    <link rel="stylesheet" href="estilos/modal-pesquisa.css">
+    <link rel="stylesheet" href="./estilos/geral.css">
+    <link rel="stylesheet" href="./estilos/cabecalho-rodape.css">
+    <link rel="stylesheet" href="./estilos/componentes.css">
+    <link rel="stylesheet" href="./estilos/modal-pesquisa.css">
 
     <style>
-        /* Estilos de suporte ao sistema de Cache do navegação.js */
+        /* Suporte ao sistema de Cache do navegação.js */
         .secao-container-cache {
             width: 100%;
             animation: fadeInSecao 0.4s ease-out;
@@ -28,15 +28,13 @@ se<!DOCTYPE html>
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Garante que o container de destaque mantenha o fluxo correto */
+        /* Garante fluxo do container de destaque */
         #conteudo_de_destaque {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
     </style>
-
-   
 </head>
 
 <body>
@@ -91,7 +89,7 @@ se<!DOCTYPE html>
 <script type="module" src="./scripts/navegacao.js"></script>
 <script type="module" src="./scripts/busca.js"></script>
 <script src="./scripts/recomendacao-secao.js"></script>
-<script type="./module" src="scripts/modal-manager.js"></script>
+<script type="module" src="./scripts/modal-manager.js"></script>
 
 <script type="module">
     import { inicializarMegaMenu } from './menu/menu.js';
