@@ -1,8 +1,0 @@
-{
-  "projects": {
-    "default": "anigeeknews",
-    "anigeeknews-web": "yshippcommerce"
-  },
-  "targets": {},
-  "etags": {}
-}
